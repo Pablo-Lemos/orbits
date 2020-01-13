@@ -41,7 +41,6 @@ class Body:
         Updates the position and velocity of the body after a time step
     """
     
-    #def __init__(self, name, mass, pos, vel, acc): 
     def __init__(self):
         """
         Parameters
