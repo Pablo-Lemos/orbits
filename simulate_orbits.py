@@ -157,6 +157,20 @@ def main():
     sun.pos = np.zeros(3) # m
     sun.vel = np.zeros(3) # m/s
 
+    # Mercury
+    mercury = Body()
+    mercury.name = 'Mercury'
+    mercury.mass = 0.33011 * 10**24 #kg
+    mercury.pos = np.array([0.387 * AU, 0., 0.]) #m
+    mercury.vel = np.array([0., -47.36 * 1000, 0.]) #m/s 
+
+    #Venus
+    venus = Body()
+    venus.name = 'Venus'
+    venus.mass = 4.8685 * 10**24 #kg
+    venus.pos = np.array([0.723 * AU, 0., 0.]) #m
+    venus.vel = np.array([0.,-35.02 * 1000, 0.]) #m/s
+
     # Earth
     earth = Body()
     earth.name = 'Earth'
@@ -165,7 +179,7 @@ def main():
     earth.vel = np.array([0.,29.783*1000,0.])# m/sec
 
     #Run the simulation
-    simulate([sun, earth], total_time, delta_time)
+    simulate([sun, mercury, venus, earth], total_time, delta_time)
 
 if __name__ == '__main__':
     main()
