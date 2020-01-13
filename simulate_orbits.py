@@ -145,7 +145,7 @@ def main():
     """
 
     delta_time = 1*DAY # The time interval to be used
-    total_time = 20*DAY # Total time of the Simulation
+    total_time = 400*DAY # Total time of the Simulation
 
     # Define Astronomical bodies. Data taken from: 
     # http://nssdc.gsfc.nasa.gov/planetary/factsheet/
