@@ -31,6 +31,10 @@ class Body:
         position of the body as array (x,y,z) in m
     vel : float(3) 
         velcity of the body as array (vx, vy, vz) in m/s
+    acc : float(3) 
+        acceleration of the body as array (ax, ay, az) in m/s^2
+    orbit : ls
+        a list where the orbit is stored
 
     Methods
     -------

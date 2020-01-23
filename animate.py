@@ -129,12 +129,7 @@ ani = animation.FuncAnimation(fig, animate, frames=frames,
 
 # Save animation
 if save==True: 
-
-    # Set up formatting for the movie files
-    Writer = animation.writers['ffmpeg']
-    writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
-
-    ani.save(path+'orbits.mp4', writer=writer)
+    ani.save(path+'animation.gif', writer='imagemagick', fps=20)
 
 # Show the animation
 if show==True:
