@@ -16,6 +16,7 @@ import pandas as pd
 G = 6.67428e-11 # The gravitational constant G in N m^2 / kg^2
 AU = 149.6e6 * 1000     # Astronomical Unit in meters.
 DAY = 24*3600. # Day in seconds
+YEAR = 365.25*DAY
 
 class Body:
     """
@@ -69,6 +70,25 @@ class Body:
         self.vel = np.zeros(3)
         self.acc = np.zeros(3)
         self.orbit = []
+    def initiate(self, radial_pos, total_vel):
+        """
+        Randomly generate an initial position and velocity given a radial position
+        and a total velocity. 
+
+        """
+
+        # Create unitary vector, for now, we keep z = 0
+        u = random_two_vector()
+
+        # Define the initial position
+        x, y = radial_pos*u
+        z = 0.
+
+        # Define the initial velocity 
+        vy, vx = total_vel*u
+
+        self.pos = (x, y, 0)
+        self.vel = (vx, -vy, 0)
 
     def interaction(self, other):
         """Returns the acceleration due to gravitational interaction with 
@@ -99,6 +119,21 @@ class Body:
         self.vel += self.acc*delta_time
         self.pos += self.vel*delta_time
 
+def random_two_vector():
+    """
+    Generates a random 2D unitary vector
+
+    Returns:
+    --------
+    x,y: float
+        Coordinates of the unitary vector (x^2 + y^2 = 1)
+
+    """
+    phi = np.random.uniform(0,np.pi*2)
+    x = np.cos(phi)
+    y = np.sin(phi)
+    return np.array([x,y])
+
 def simulate(bodies, total_time, delta_time):
     """
     Simulates the orbits for a certain period of time, and stores the results
@@ -125,21 +160,24 @@ def simulate(bodies, total_time, delta_time):
                     body.interaction(other_body) 
 
             body.update(delta_time) # Update position and velocity of each body
-            body.orbit.append(body.pos/AU) # Store position of each body (in AU)
+            body.orbit.append(np.concatenate(
+             (body.pos/AU, body.vel/AU*YEAR))) # Store position of each body (in AU)
 
         time += delta_time # Update total time
 
     # Create the pandas DataFrame for each orbit
+    orbits = []
     for body in bodies:
-        file_name = './orbits/'+body.name+'.dat' # File name to use for saving
+        file_name = './orbits/'+body.name # File name to use for saving
         
         # Store as pandas array
         # df = pd.DataFrame(body.orbit, columns = ['x[AU]', 'y[AU]', 'z[AU]'])
         # df.to_pickle(file_name)
  
         # Store as numpy array
-        ar = np.asarray(body.orbit) #convert orbit into numpy array
-        np.savetxt(file_name, ar, header = 'px[AU]    py[AU]    vx[m/s]    vy[m/s]') 
+        orbits.append(np.asarray(body.orbit)) #convert orbit into numpy array
+
+    np.save(file_name, orbits)#, header = 'x[AU]', 'y[AU]', 'z[AU]') 
 
 def main():
     """
