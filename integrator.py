@@ -9,7 +9,7 @@ pablo.lemos.18@ucl.ac.uk
 '''
 import numpy as np
 
-def get_leapfrog_step(x, ph, dt, m1, m2, model, norm_p = 1):
+def get_leapfrog_step(x, ph, dt, m1, m2, model):
     ''' 
     Calculate the next step for leapfrog integration
 
@@ -46,13 +46,13 @@ def get_leapfrog_step(x, ph, dt, m1, m2, model, norm_p = 1):
     dX = x1[2:] - x1[:2]
 
     # p_{n+3/2}d
-    dp = model.predict(dX[np.newaxis])
-    ph3 = ph + dp*norm_p
+    dp = model(dX)
+    ph3 = ph + dp
 
     return x1, ph3, dp
 
 
-def integrate_leapfrog(X0, P0, dt, m1, m2, nsteps, model, norm_p = 1):
+def integrate_leapfrog(X0, P0, dt, m1, m2, nsteps, model):
     '''
     Leapfrog integration, following notation from 
     https://young.physics.ucsc.edu/115/leapfrog.pdf
@@ -85,15 +85,18 @@ def integrate_leapfrog(X0, P0, dt, m1, m2, nsteps, model, norm_p = 1):
 
     # Model predict*norm_p = F*dt
     # (ph = phalf)
-    ph = P0 + 0.5*model.predict(dX[np.newaxis])*norm_p
+    ph = P0 + 0.5*model(dX)
     x = np.copy(X0)
     
     x_pred = np.zeros([nsteps, 4])
     dp_pred = np.zeros([nsteps-1, 2])
     
-    x_pred[0] = X0
+    if X0.ndim == 1:
+        x_pred[0] = X0
+    else: 
+        x_pred = X0[:,0]
     for i in range(nsteps-1):
-        x, ph, dp = get_leapfrog_step(x, ph, dt, m1, m2, model, norm_p = norm_p)
+        x, ph, dp = get_leapfrog_step(x, ph, dt, m1, m2, model)
         x_pred[i+1] = x
         dp_pred[i] = dp
         

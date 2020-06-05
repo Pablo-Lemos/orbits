@@ -87,8 +87,8 @@ class Body:
         # Define the initial velocity 
         vy, vx = total_vel*u
 
-        self.pos = (x, y, 0)
-        self.vel = (vx, -vy, 0)
+        self.pos = np.array([x, y, 0])
+        self.vel = np.array([vx, -vy, 0])
 
     def interaction(self, other):
         """Returns the acceleration due to gravitational interaction with 
