@@ -13,10 +13,11 @@ import numpy as np
 import pandas as pd
 
 #Define constants
-G = 6.67428e-11 # The gravitational constant G in N m^2 / kg^2
 AU = 149.6e6 * 1000     # Astronomical Unit in meters.
 DAY = 24*3600. # Day in seconds
 YEAR = 365.25*DAY
+MSUN = 1.98892 * 10**30 # Solar mass
+G = 6.67428e-11/AU**3*MSUN*YEAR**2 # The gravitational constant G in AU**3 /MSUN/ YEAR^2
 
 class Body:
     """
@@ -161,7 +162,7 @@ def simulate(bodies, total_time, delta_time):
 
             body.update(delta_time) # Update position and velocity of each body
             body.orbit.append(np.concatenate(
-             (body.pos/AU, body.vel/AU*YEAR))) # Store position of each body (in AU)
+             (body.pos, body.vel))) # Store position of each body (in AU)
 
         time += delta_time # Update total time
 
@@ -185,8 +186,8 @@ def main():
     and starts it
     """
 
-    delta_time = 1*DAY # The time interval to be used
-    total_time = 400*DAY # Total time of the Simulation
+    delta_time = 1*DAY/YEAR # The time interval to be used in years
+    total_time = 400*DAY/YEAR # Total time of the Simulation in years
 
     # Define Astronomical bodies. Data taken from: 
     # http://nssdc.gsfc.nasa.gov/planetary/factsheet/
@@ -194,30 +195,30 @@ def main():
     # Sun
     sun = Body() 
     sun.name = 'Sun'
-    sun.mass = 1.98892 * 10**30 # kg
-    sun.pos = np.zeros(3) # m
-    sun.vel = np.zeros(3) # m/s
+    sun.mass = 1. # solar masses
+    sun.pos = np.zeros(3)  
+    sun.vel = np.zeros(3) 
 
     # Mercury
     mercury = Body()
     mercury.name = 'Mercury'
-    mercury.mass = 0.33011 * 10**24 #kg
-    mercury.pos = np.array([0.387 * AU, 0., 0.]) #m
-    mercury.vel = np.array([0., -47.36 * 1000, 0.]) #m/s 
+    mercury.mass = 0.33011 * 10**24/MSUN #solar masses
+    mercury.pos = np.array([0.387, 0., 0.]) #AU
+    mercury.vel = np.array([0., -47.36 * 1000/AU*YEAR, 0.]) #AU/YEAR 
 
     #Venus
     venus = Body()
     venus.name = 'Venus'
-    venus.mass = 4.8685 * 10**24 #kg
-    venus.pos = np.array([0.723 * AU, 0., 0.]) #m
-    venus.vel = np.array([0.,-35.02 * 1000, 0.]) #m/s
+    venus.mass = 4.8685 * 10**24/MSUN #solar masses
+    venus.pos = np.array([0.723, 0., 0.]) #AU
+    venus.vel = np.array([0.,-35.02 * 1000/AU*YEAR, 0.]) #AU/Y
 
     # Earth
     earth = Body()
     earth.name = 'Earth'
-    earth.mass = 5.9742 * 10**24 # kg
-    earth.pos = np.array([-1*AU,0.,0.]) # m
-    earth.vel = np.array([0.,29.783*1000,0.])# m/sec
+    earth.mass = 5.9742 * 10**24/MSUN # solar masses
+    earth.pos = np.array([-1.,0.,0.]) # AU
+    earth.vel = np.array([0.,29.783*1000/AU*YEAR,0.])# AU/Y
 
     #Run the simulation
     simulate([sun, mercury, venus, earth], total_time, delta_time)
