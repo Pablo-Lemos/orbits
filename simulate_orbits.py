@@ -17,7 +17,7 @@ AU = 149.6e6 * 1000     # Astronomical Unit in meters.
 DAY = 24*3600. # Day in seconds
 YEAR = 365.25*DAY
 MSUN = 1.98892 * 10**30 # Solar mass
-MEARTH = 5.9742 * 10**24/MSUN # Earth mass
+MEARTH = 5.9742 * 10**24 # Earth mass
 G = 6.67428e-11/AU**3*MEARTH*YEAR**2 # The gravitational constant G in AU**3 /MEARTH/ YEAR^2
 
 class Body:
