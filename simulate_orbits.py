@@ -18,7 +18,7 @@ DAY = 24*3600. # Day in seconds
 YEAR = 365.25*DAY
 MSUN = 1.98892 * 10**30 # Solar mass
 MEARTH = 5.9742 * 10**24 # Earth mass
-G = 6.67428e-11/AU**3*MEARTH*YEAR**2 # The gravitational constant G in AU**3 /MEARTH/ YEAR^2
+G = 6.67428e-11/AU**3*MSUN*YEAR**2 # The gravitational constant G in AU**3 /MSUN/ YEAR^2
 
 class Body:
     """
@@ -196,28 +196,28 @@ def main():
     # Sun
     sun = Body() 
     sun.name = 'Sun'
-    sun.mass = 1./MEARTH # Earth masses
+    sun.mass = 1./SUN # Solar masses
     sun.pos = np.zeros(3)  
     sun.vel = np.zeros(3) 
 
     # Mercury
     mercury = Body()
     mercury.name = 'Mercury'
-    mercury.mass = 0.33011 * 10**24/MEARTH # Earth masses
+    mercury.mass = 0.33011 * 10**24/MSUN # Solar masses
     mercury.pos = np.array([0.387, 0., 0.]) #AU
     mercury.vel = np.array([0., -47.36 * 1000/AU*YEAR, 0.]) #AU/YEAR 
 
     #Venus
     venus = Body()
     venus.name = 'Venus'
-    venus.mass = 4.8685 * 10**24/MEARTH # Earth masses
+    venus.mass = 4.8685 * 10**24/MSUN # Solar masses
     venus.pos = np.array([0.723, 0., 0.]) #AU
     venus.vel = np.array([0.,-35.02 * 1000/AU*YEAR, 0.]) #AU/Y
 
     # Earth
     earth = Body()
     earth.name = 'Earth'
-    earth.mass = 1. # Earth masses
+    earth.mass = MEARTH/MSUN # Solar masses
     earth.pos = np.array([-1.,0.,0.]) # AU
     earth.vel = np.array([0.,29.783*1000/AU*YEAR,0.])# AU/Y
 
