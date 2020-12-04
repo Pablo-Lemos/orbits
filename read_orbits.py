@@ -28,8 +28,15 @@ def read_orbit(name, path):
     orbit_data : np.array
         a numpy array containing the positions and accelerations for the body 
     '''
-    orbit = np.loadtxt(path+name+'.txt', usecols = [2,3,4,5,6,7], 
-                        unpack=True, delimiter=',')
+    try:
+        orbit = np.loadtxt(path+name+'.txt', usecols = [2,3,4,5,6,7], 
+                            unpack=True, delimiter=',')
+    except IndexError:
+        orbit = np.genfromtxt(path+name+'.txt', usecols = [2,3,4,5,6,7], 
+                            unpack=True, delimiter=',',
+                            skip_header=22, skip_footer = 31
+                            )
+
     return orbit
 
 def add_moons(name, orbits_ls, masses_ls, names_ls, use_moons, path):

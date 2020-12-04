@@ -25,16 +25,16 @@ planet_masses = [0.33011 * 10**24,
                 0.64171 * 10**24,
                 1898.19 * 10**24,
                 568.34 * 10**24, 
-                86.81 * 10**24, 
-                102.4 * 10**24, 
+                86.8103 * 10**24, 
+                102.41 * 10**24, 
                 ]
 
 planets_with_moons = ['earth', 
-#                'mars',
+                #'mars',
                 'jupiter',
                 'saturn', 
-                #'uranus', 
-                #'neptune', 
+                'uranus', 
+                'neptune', 
                 ]
 
 
@@ -68,7 +68,8 @@ saturn_moon_names = ['mimas',
                      'titan', 
                      'hyperion', 
                      'iapetus',
-                     'phoebe']
+                     'phoebe',
+                     ]
 
 saturn_moon_masses = [0.000037493 * 10**24, 
                      0.000108022 * 10**24, 
@@ -78,14 +79,46 @@ saturn_moon_masses = [0.000037493 * 10**24,
                      0.1353452 * 10**24, 
                      5.6199 * 10**18, 
                      0.001805635 * 10**24,
-                     8.292 * 10**18]
+                     8.292 * 10**18,
+                     ]
+
+uranus_moon_names = ['ariel', 
+                     'umbriel', 
+                     'titania', 
+                     'oberon',
+                     'miranda', 
+                    ]
+
+uranus_moon_masses = [125100. * 10**16, 
+                            127500. * 10**16, 
+                            340000. * 10**16,
+                            307600. * 10**16,
+                            6400.* 10**16,
+                            ]
+
+neptune_moon_names = ['triton', 
+                      'nereid',
+                      'proteus',
+                    ]
+
+neptune_moon_masses = [2139000. * 10**16,
+                       3.0873 * 10**19,
+                       4.4 * 10**19 
+]
+                            
 
 moon_names = [earth_moon_names, 
                    #mars_moon_names,
                    jupiter_moon_names,
-                   saturn_moon_names]
+                   saturn_moon_names,
+                   uranus_moon_names,
+                   neptune_moon_names,
+]
         
 moon_masses = [earth_moon_masses, 
                    #mars_moon_masses,
                    jupiter_moon_masses,
-                   saturn_moon_masses]
+                   saturn_moon_masses,
+                   uranus_moon_masses,
+                   neptune_moon_masses,
+                   ]
