@@ -39,16 +39,16 @@ num_training_iterations = 200000
 # Do not change this
 #total_time_traj = 35 #Years
 #num_time_steps_total = int(total_time_traj/delta_time)
-num_time_steps_tr = 40000 #An orbit for saturn is 129110 steps
+num_time_steps_tr = 520000 #An orbit for saturn is 129110 steps
 num_time_steps_sr = 500
-num_batches = 400
+num_batches = 2600
 #num_time_steps_val = int(total_time_traj/delta_time) - num_time_steps_tr
 
 
 # Read the data
-nplanets = 1 # Number of planets (not counting the sun)
+nplanets = 8 # Number of planets (not counting the sun)
 data, masses, names = read_orbits.main(nplanets = nplanets, frame='b', use_moons = True, 
-                                       path='/Users/Pablo/Dropbox/data/orbits/7parts/part1/')
+                                       path='/Users/Pablo/Dropbox/data/orbits/7parts/full/')
 nplanets = len(data[0])
 nedges = nplanets*(nplanets-1)//2
 batch_size_tr = num_time_steps_tr//num_batches
@@ -129,7 +129,7 @@ D_val = None
 A_tr_flat = None
 A_val_flat = None
 D_tr_flat = None
-D_val_flat = None
+#D_val_flat = None
 A_tr_batches = None
 D_tr_batches = None
 data = None
