@@ -5,10 +5,40 @@ import sonnet as snt
 
 from helper_functions import *
 
-def mean_weighted_error(y_true, y_pred):
+class Normalize_gn(tf.keras.layers.Layer):
+    def __init__(self):
+        super(Normalize_gn, self).__init__()
+        
+    def call(self, inputs):
+        maxs = tf.reduce_max(inputs, axis = 0)
+        mins = tf.reduce_min(inputs, axis = 0)
+        X = (inputs - mins)/(maxs-mins)
+        outputs = 2*X - 1
+        #outputs = tf.concat([outputs[:,:-1], temp], axis = -1)
+        #print('norm before =', inputs)
+        #print('norm after =', outputs)
+    
+        return outputs
+
+def mean_weighted_error(y_true, y_pred, nplanets):
+    y_true = tf.reshape(y_true, shape=[-1, nplanets, 3])
+    y_pred = tf.reshape(y_pred, shape=[-1, nplanets, 3])
+
+    mag_true = tf.norm(y_true, axis=-1)
+    mag_true = tf.reduce_mean(mag_true, axis = 0)
+
+    mag_pred = tf.norm(y_pred, axis=-1)
+    mag_pred = tf.reduce_mean(mag_pred, axis = 0)
+
+    weights = tf.abs(log10(mag_true) - log10(mag_pred))
+    ones = tf.ones(shape=[nplanets,])
+    weights = tf.maximum(weights, ones)
+    
     x = (y_pred - y_true)/tf.norm(y_true, axis = -1, keepdims=True)
     x = tf.norm(x, axis=-1)
-    loss = tf.reduce_mean(x)
+    loss = tf.reduce_mean(x, axis = 0)
+    loss = tf.reduce_mean(loss*weights)    
+    
     return loss
 
 class MeanWeightedError(tf.keras.metrics.Metric):
@@ -16,8 +46,8 @@ class MeanWeightedError(tf.keras.metrics.Metric):
         super(MeanWeightedError, self).__init__(name=name, **kwargs)
         self.mwe = self.add_weight(name="mwe", initializer="zeros")
 
-    def update_state(self, y_true, y_pred):
-        self.mwe.assign_add(mean_weighted_error(y_true, y_pred))
+    def update_state(self, y_true, y_pred, nplanets):
+        self.mwe.assign_add(mean_weighted_error(y_true, y_pred, nplanets))
 
     def result(self):
         return self.mwe
@@ -38,14 +68,14 @@ class LearnForces(tf.keras.Model):
         self.nplanets = nplanets
         self.nedges = nplanets*(nplanets-1)//2
 
-        self.opt1 = tf.keras.optimizers.Adam(learning_rate=1e-2)
+        self.opt1 = tf.keras.optimizers.Adam(learning_rate=5e-2)
         self.opt2 = tf.keras.optimizers.Adam(learning_rate=1e-3)
         #self.test_loss_metric = tf.keras.metrics.MeanAbsoluteError(name='test_loss')
         
-        logm_init = tf.random_normal_initializer(mean=0.0, stddev=0.1)
+        logm_init = tf.random_normal_initializer(mean=0.0, stddev=5.0)
         #logm_init = tf.constant_initializer(np.log10(masses[1:]))
         #logG_init = tf.constant_initializer(np.log10(G/A_norm))
-        logG_init = tf.random_normal_initializer(mean=0.0, stddev=1.0)
+        #logG_init = tf.random_normal_initializer(mean=0.0, stddev=1.0)
         
         M = tf.constant_initializer([
                          [-2, 0., 0.], 
@@ -57,16 +87,11 @@ class LearnForces(tf.keras.Model):
                                     ],)
         
         self.logm_planets = tf.Variable(
-            initial_value=logm_init(shape=(self.nplanets-1,), dtype="float32"),
+            initial_value=logm_init(shape=(self.nplanets,), dtype="float32"),
             trainable=True,
+            constraint=lambda z: tf.clip_by_value(z, -20, 10)
         )
-        #a = tf.constant([0.], dtype = tf.float32)
-        #self.logm = tf.concat([a, self.logm_planets], axis=0)
-        
-        self.logG = tf.Variable(
-            initial_value=logG_init(shape=(1,), dtype="float32"),
-            trainable=True,
-        )
+        norm_layer = Normalize_gn()
         
         self.graph_network = gn.blocks.EdgeBlock(
             #edge_model_fn=lambda: snt.Linear(3, with_bias = False, 
@@ -75,20 +100,16 @@ class LearnForces(tf.keras.Model):
             #                                  with_bias = True,
             #                                  activation = tf.keras.activations.tanh),
             edge_model_fn = lambda: snt.Sequential([
-                                                  #normalizer,
-                                                  tf.keras.layers.Dense(128, input_dim=6, kernel_initializer='normal', activation='relu'),
-                                                  tf.keras.layers.Dense(128, activation='relu'),
-                                                  tf.keras.layers.Dense(128, activation='relu'),
-                                                  #tf.keras.layers.Dense(32, input_dim=6, kernel_initializer='normal', activation='relu'),
-                                                  #tf.keras.layers.Dense(32, activation='relu'),
-                                                  #tf.keras.layers.Dense(32, activation='relu'),
-                                                  tf.nn.relu,
+                                                  norm_layer,
+                                                  tf.keras.layers.Dense(32, input_dim=6, kernel_initializer='normal', activation='tanh'),
+                                                  tf.keras.layers.Dense(32, activation='tanh'),
+                                                  tf.keras.layers.Dense(32, activation='tanh'),
                                                   snt.Linear(3),
                                                             ]),
             use_edges = True,
             use_receiver_nodes = True,
             use_sender_nodes = True,
-            use_globals = True,
+            use_globals = False,
         )
                 
 
@@ -102,22 +123,21 @@ class LearnForces(tf.keras.Model):
     def get_acceleration(self, forces, graph):
         acceleration_tr = tf.divide(forces, tf.pow(10.,graph.nodes))
         return acceleration_tr
-        #output_ops_tr = tf.reshape(acceleration_tr, shape=[self.ntime, self.nplanets, 3])
-        #return output_ops_tr
         
     def call(self, D, training = False, extract = False):
-        #self.ntime = len(g.nodes)//nplanets
         ntime = len(D)//self.nedges
         if training == True:
             m_noise = tf.random.normal(tf.shape(self.logm_planets), 0, self.noise_level, tf.float32)
             lm = self.logm_planets*(1+ m_noise)
         else: 
             lm = self.logm_planets
+
+        lm = tf.clip_by_value(lm, -30, 10, name=None)
             
-        a = tf.constant([np.log10(5.522376708530351)], dtype = tf.float32)
-        lm = tf.concat([a, lm], axis=0)
-        
-        #nodes_g = np.concatenate([np.log10(masses_tf)]*ntime)[:,np.newaxis]
+        #a = tf.constant([np.log10(5.522376708530351)], dtype = tf.float32)
+        #lm = tf.concat([a, lm], axis=0)
+        self.logmasses = lm
+
         nodes_g = tf.concat([lm]*ntime, axis = 0)
         nodes_g = tf.expand_dims(nodes_g, 1)
         senders_g, receivers_g = reshape_senders_receivers(self.senders, 
@@ -132,16 +152,21 @@ class LearnForces(tf.keras.Model):
           "edges": cartesian_to_spherical_coordinates(D), 
           "receivers": receivers_g, 
           "senders": senders_g ,
-          "globals": self.logG
+          #"globals": self.logG
            } 
     
         g = gn.utils_tf.data_dicts_to_graphs_tuple([graph_dict])
-
+        print('g nodes before =', g.nodes[:30])
+        print('g edges before =', g.edges)
         g = self.graph_network(g)
+        print('g nodes =', g.nodes[:30])
+        print('g edges=', g.edges)
         g = g.replace(
             edges = spherical_to_cartesian_coordinates(g.edges))
         f = self.sum_forces(g)
+        print('f =', f)
         a = self.get_acceleration(f, g)
+        print('a =', a)
         if extract == True: 
             f = tf.reshape(g.edges, shape=[-1, self.nedges, 3]).numpy()
             a = tf.reshape(a, shape=[-1, self.nplanets, 3]).numpy()
@@ -155,8 +180,11 @@ class LearnForces(tf.keras.Model):
         # Unpack the data
         D, A = data
         
-        D_rot, A_rot = rotate_data(D, A)
-        #D_rot, A_rot = D, A
+        D_rs = tf.reshape(D, shape = [-1, self.nedges, 3])
+        A_rs = tf.reshape(A, shape = [-1, self.nplanets, 3])
+        D_rot, A_rot = rotate_data(D_rs, A_rs, uniform = False)
+        D_rot = tf.reshape(D_rot, shape = [-1, 3])
+        A_rot = tf.reshape(A_rot, shape = [-1, 3])
         
         D_noise = tf.random.normal(tf.shape(D), 0, self.noise_level, tf.float32)
         D_rot = D_rot*(1+ D_noise)
@@ -167,7 +195,7 @@ class LearnForces(tf.keras.Model):
             # Forward pass
             predictions = self(D_rot, training = True)
             # Compute the loss
-            loss = mean_weighted_error(A_rot, predictions)
+            loss = mean_weighted_error(A_rot, predictions, self.nplanets)
         
         # Compute gradients
         # Trainable variables are the masses and the MLP layers 
@@ -198,7 +226,7 @@ class LearnForces(tf.keras.Model):
         
         predictions = self(D)
 
-        loss_test.update_state(A, predictions)
+        loss_test.update_state(A, predictions, self.nplanets)
         
         return {"loss": loss_test.result()}
     

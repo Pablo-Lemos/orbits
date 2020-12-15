@@ -78,22 +78,35 @@ def reshape_senders_receivers(senders, receivers, batch_size, nplanets, nedges):
 
 def build_rotation_matrix(a,b,g):
     A0 = tf.stack([tf.cos(a)*tf.cos(b), tf.sin(a)*tf.cos(b), -tf.sin(b)], 
-                  axis=0)
+                  axis=-1)
     A1 = tf.stack([tf.cos(a)*tf.sin(b)*tf.sin(g)-tf.sin(a)*tf.cos(g), 
                    tf.sin(a)*tf.sin(b)*tf.sin(g)+tf.cos(a)*tf.cos(g),
-                   tf.cos(b)*tf.sin(g)], axis=0)
+                   tf.cos(b)*tf.sin(g)], axis=-1)
     A2 = tf.stack([tf.cos(a)*tf.sin(b)*tf.cos(g)+tf.sin(a)*tf.sin(g), 
                    tf.sin(a)*tf.sin(b)*tf.cos(g)-tf.cos(a)*tf.sin(g),
-                   tf.cos(b)*tf.cos(g)], axis=0)
+                   tf.cos(b)*tf.cos(g)], axis=-1)
     
     return tf.stack((A0, A1, A2), axis=1)
 
-def rotate_data(D, A):
+def rotate_data(D, A, uniform = True):
+    if uniform:
+        n=1
+    else:  
+        n = D.shape[0]
+
     # I think the maxes should be 2pi, pi, pi, but going for overkill just in case
-    alpha = tf.random.uniform([], minval=0, maxval=2*np.pi, dtype=tf.dtypes.float32)
-    beta = tf.random.uniform([], minval=0, maxval=2*np.pi, dtype=tf.dtypes.float32)
-    gamma = tf.random.uniform([], minval=0, maxval=2*np.pi, dtype=tf.dtypes.float32)
+    alpha = tf.random.uniform([n,], minval=0, maxval=2*np.pi, dtype=tf.dtypes.float32)
+    beta = tf.random.uniform([n,], minval=0, maxval=2*np.pi, dtype=tf.dtypes.float32)
+    gamma = tf.random.uniform([n,], minval=0, maxval=2*np.pi, dtype=tf.dtypes.float32)
     R = build_rotation_matrix(alpha,beta,gamma)
-    D = tf.linalg.matmul(D,R)
-    A = tf.linalg.matmul(A,R)
+    
+    if uniform:
+        # Rotate all points by the same angle
+        D = tf.linalg.matmul(D,R)
+        A = tf.linalg.matmul(A,R)
+    else: 
+        # Rotate each time step by a different angle:
+        D = tf.einsum('nij,njk->nik', D,R)
+        A = tf.einsum('nij,njk->nik', A,R)
+        
     return D, A
