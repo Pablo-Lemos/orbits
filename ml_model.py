@@ -142,8 +142,6 @@ class LearnForces(tf.keras.Model):
             lm = self.logm_planets*(1+ m_noise)
         else: 
             lm = self.logm_planets
-
-        lm = tf.clip_by_value(lm, -30, 10, name=None)
             
         #a = tf.constant([np.log10(5.522376708530351)], dtype = tf.float32)
         #lm = tf.concat([a, lm], axis=0)
