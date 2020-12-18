@@ -97,7 +97,8 @@ def rotate_data(D, A, uniform = True):
     # I think the maxes should be 2pi, pi, pi, but going for overkill just in case
     alpha = tf.random.uniform([n,], minval=0, maxval=2*np.pi, dtype=tf.dtypes.float32)
     beta = tf.random.uniform([n,], minval=0, maxval=2*np.pi, dtype=tf.dtypes.float32)
-    gamma = tf.random.uniform([n,], minval=0, maxval=2*np.pi, dtype=tf.dtypes.float32)
+    # https://en.wikipedia.org/wiki/Euler_angles
+    gamma = tf.random.uniform([n,], minval=0, maxval=np.pi, dtype=tf.dtypes.float32)
     R = build_rotation_matrix(alpha,beta,gamma)
     
     if uniform:

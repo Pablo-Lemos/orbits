@@ -30,7 +30,7 @@ planet_masses = [0.33011 * 10**24,
                 ]
 
 planets_with_moons = ['earth', 
-                #'mars',
+                'mars',
                 'jupiter',
                 'saturn', 
                 'uranus', 
@@ -108,7 +108,7 @@ neptune_moon_masses = [2139000. * 10**16,
                             
 
 moon_names = [earth_moon_names, 
-                   #mars_moon_names,
+                   mars_moon_names,
                    jupiter_moon_names,
                    saturn_moon_names,
                    uranus_moon_names,
@@ -116,7 +116,7 @@ moon_names = [earth_moon_names,
 ]
         
 moon_masses = [earth_moon_masses, 
-                   #mars_moon_masses,
+                   mars_moon_masses,
                    jupiter_moon_masses,
                    saturn_moon_masses,
                    uranus_moon_masses,

@@ -10,8 +10,18 @@ class Normalize_gn(tf.keras.layers.Layer):
         super(Normalize_gn, self).__init__()
         
     def call(self, inputs):
-        maxs = tf.reduce_max(inputs, axis = 0)
-        mins = tf.reduce_min(inputs, axis = 0)
+        maxs_r = tf.reduce_max(inputs[:,:1], axis = 0)
+        mins_r = tf.reduce_min(inputs[:,:1], axis = 0)
+        maxs_theta = tf.constant([np.pi])
+        maxs_phi = tf.constant([np.pi])
+        mins_theta = tf.constant([0.])
+        mins_phi = tf.constant([-np.pi])
+        maxs_m = tf.reduce_max(inputs[:,3:5], axis = 0)
+        mins_m = tf.reduce_min(inputs[:,3:5], axis = 0)
+
+        maxs = tf.concat([maxs_r, maxs_theta, maxs_phi, maxs_m], axis = -1)
+        mins = tf.concat([mins_r, mins_theta, mins_phi, mins_m], axis = -1)
+
         X = (inputs - mins)/(maxs-mins)
         outputs = 2*X - 1
         #outputs = tf.concat([outputs[:,:-1], temp], axis = -1)
@@ -89,8 +99,9 @@ class LearnForces(tf.keras.Model):
         self.logm_planets = tf.Variable(
             initial_value=logm_init(shape=(self.nplanets,), dtype="float32"),
             trainable=True,
-            constraint=lambda z: tf.clip_by_value(z, -20, 10)
+            constraint=lambda z: tf.clip_by_value(z, -20, 12)
         )
+        
         norm_layer = Normalize_gn()
         
         self.graph_network = gn.blocks.EdgeBlock(
@@ -101,9 +112,9 @@ class LearnForces(tf.keras.Model):
             #                                  activation = tf.keras.activations.tanh),
             edge_model_fn = lambda: snt.Sequential([
                                                   norm_layer,
-                                                  tf.keras.layers.Dense(32, input_dim=6, kernel_initializer='normal', activation='tanh'),
-                                                  tf.keras.layers.Dense(32, activation='tanh'),
-                                                  tf.keras.layers.Dense(32, activation='tanh'),
+                                                  tf.keras.layers.Dense(128, input_dim=6, kernel_initializer='normal', activation='tanh'),
+                                                  tf.keras.layers.Dense(128, activation='tanh'),
+                                                  tf.keras.layers.Dense(128, activation='tanh'),
                                                   snt.Linear(3),
                                                             ]),
             use_edges = True,
@@ -156,17 +167,17 @@ class LearnForces(tf.keras.Model):
            } 
     
         g = gn.utils_tf.data_dicts_to_graphs_tuple([graph_dict])
-        print('g nodes before =', g.nodes[:30])
-        print('g edges before =', g.edges)
+        #print('g nodes before =', g.nodes[:30])
+        #print('g edges before =', g.edges)
         g = self.graph_network(g)
-        print('g nodes =', g.nodes[:30])
-        print('g edges=', g.edges)
+        #print('g nodes =', g.nodes[:30])
+        #print('g edges=', g.edges)
         g = g.replace(
             edges = spherical_to_cartesian_coordinates(g.edges))
         f = self.sum_forces(g)
-        print('f =', f)
+        #print('f =', f)
         a = self.get_acceleration(f, g)
-        print('a =', a)
+        #print('a =', a)
         if extract == True: 
             f = tf.reshape(g.edges, shape=[-1, self.nedges, 3]).numpy()
             a = tf.reshape(a, shape=[-1, self.nplanets, 3]).numpy()
