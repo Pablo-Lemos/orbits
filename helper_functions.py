@@ -111,3 +111,23 @@ def rotate_data(D, A, uniform = True):
         A = tf.einsum('nij,njk->nik', A,R)
         
     return D, A
+
+def shuffle_senders_receivers(senders, receivers):
+    send_rec = np.stack([senders, receivers], axis = -1)
+    n = len(send_rec)
+    rands = np.random.uniform(n,)
+    new_senders = np.zeros(n,)
+    new_receivers = np.zeros(n,)
+    signs = np.ones(n,)
+    for i in range(len(send_rec)):
+        x = np.random.uniform()
+        if x>0.5:
+            new_senders[i] = senders[i]
+            new_receivers[i] = receivers[i]
+        else:
+            new_senders[i] = receivers[i]
+            new_receivers[i] = senders[i]
+            signs[i] = -1. 
+    return new_senders, new_receivers, signs
+
+
