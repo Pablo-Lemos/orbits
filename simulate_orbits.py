@@ -108,6 +108,7 @@ class Body:
         
         #Calculate the acceleration using Newtonian Gravity
         self.acc += G*other.mass*delta_pos/dist**3.
+        
 
     def update(self, delta_time):
         """Updates the position and velocity of the body after a time step
@@ -136,7 +137,7 @@ def random_two_vector():
     y = np.sin(phi)
     return np.array([x,y])
 
-def simulate(bodies, total_time, delta_time):
+def simulate(bodies, total_time, delta_time, save = False):
     """
     Simulates the orbits for a certain period of time, and stores the results
     as a panda array. 
@@ -152,8 +153,12 @@ def simulate(bodies, total_time, delta_time):
     """
 
     time = 0 # Current time
+    nsteps = int(total_time//delta_time)
+    nbodies = int(len(bodies))
+    orbits = np.empty([nsteps, nbodies, 6])
 
-    while time<total_time: 
+    for i in range(nsteps):
+        j=0
         for body in bodies: 
             body.acc = (0,0,0) # Restart acceleration
             for other_body in bodies: 
@@ -162,24 +167,27 @@ def simulate(bodies, total_time, delta_time):
                     body.interaction(other_body) 
 
             body.update(delta_time) # Update position and velocity of each body
-            body.orbit.append(np.concatenate(
-             (body.pos, body.vel))) # Store position of each body (in AU)
+            orbits[i, j, :] = np.concatenate([body.pos, body.vel]) # Store position of each body (in AU)
+            j+=1 
 
         time += delta_time # Update total time
 
-    # Create the pandas DataFrame for each orbit
-    orbits = []
-    for body in bodies:
-        file_name = './orbits/'+body.name # File name to use for saving
-        
-        # Store as pandas array
-        # df = pd.DataFrame(body.orbit, columns = ['x[AU]', 'y[AU]', 'z[AU]'])
-        # df.to_pickle(file_name)
- 
-        # Store as numpy array
-        orbits.append(np.asarray(body.orbit)) #convert orbit into numpy array
+    if save == True:
+        # Create the pandas DataFrame for each orbit
+        orbits = []
+        for body in bodies:
+            file_name = './orbits/'+body.name # File name to use for saving
+            
+            # Store as pandas array
+            # df = pd.DataFrame(body.orbit, columns = ['x[AU]', 'y[AU]', 'z[AU]'])
+            # df.to_pickle(file_name)
+    
+            # Store as numpy array
+            orbits.append(np.asarray(body.orbit)) #convert orbit into numpy array
 
-    np.save(file_name, orbits)#, header = 'x[AU]', 'y[AU]', 'z[AU]') 
+        np.save(file_name, orbits)#, header = 'x[AU]', 'y[AU]', 'z[AU]') 
+
+    return orbits
 
 def main():
     """
@@ -187,8 +195,8 @@ def main():
     and starts it
     """
 
-    delta_time = 1*DAY/YEAR # The time interval to be used in years
-    total_time = 400*DAY/YEAR # Total time of the Simulation in years
+    delta_time = (1/24.)*DAY/YEAR # The time interval to be used in years (1 hour)
+    total_time = 1. # Total time of the Simulation in years
 
     # Define Astronomical bodies. Data taken from: 
     # http://nssdc.gsfc.nasa.gov/planetary/factsheet/
@@ -196,7 +204,7 @@ def main():
     # Sun
     sun = Body() 
     sun.name = 'Sun'
-    sun.mass = 1./SUN # Solar masses
+    sun.mass = 1. # Solar masses
     sun.pos = np.zeros(3)  
     sun.vel = np.zeros(3) 
 
@@ -217,12 +225,14 @@ def main():
     # Earth
     earth = Body()
     earth.name = 'Earth'
-    earth.mass = MEARTH/MSUN # Solar masses
+    earth.mass = MEARTH/MSUN
     earth.pos = np.array([-1.,0.,0.]) # AU
     earth.vel = np.array([0.,29.783*1000/AU*YEAR,0.])# AU/Y
 
     #Run the simulation
-    simulate([sun, mercury, venus, earth], total_time, delta_time)
+    orbits = simulate([sun, mercury, venus, earth], total_time, delta_time)
+
+    return orbits
 
 if __name__ == '__main__':
     main()
