@@ -6,22 +6,20 @@ import sonnet as snt
 from helper_functions import *
 
 class Normalize_gn(tf.keras.layers.Layer):
-    def __init__(self):
+    def __init__(self, D):
         super(Normalize_gn, self).__init__()
+        self.maxs_r = tf.reduce_max(D[:,:1], axis = 0)
+        self.mins_r = tf.reduce_min(D[:,:1], axis = 0)
         
     def call(self, inputs):
-        maxs_r = tf.reduce_max(inputs[:,:1], axis = 0)
-        mins_r = tf.reduce_min(inputs[:,:1], axis = 0)
+        maxs_r = self.maxs_r
+        mins_r = self.mins_r
         maxs_theta = tf.constant([np.pi])
         maxs_phi = tf.constant([np.pi])
         mins_theta = tf.constant([0.])
         mins_phi = tf.constant([-np.pi])
         maxs_m = tf.constant([12.])
         mins_m = tf.constant([-12.])
-        #maxs_m = tf.reduce_max(inputs[:,3:5])
-        #mins_m = tf.reduce_min(inputs[:,3:5])
-        #maxs_m = tf.reshape(maxs_m, shape=(1,))
-        #mins_m = tf.reshape(mins_m, shape=(1,))
 
         maxs = tf.concat([maxs_r, maxs_theta, maxs_phi, maxs_m, maxs_m], axis = -1)
         mins = tf.concat([mins_r, mins_theta, mins_phi, mins_m, mins_m], axis = -1)
@@ -71,7 +69,7 @@ loss_tracker = tf.keras.metrics.Mean(name='loss')
 loss_test = MeanWeightedError(name='loss_test')
 
 class LearnForces(tf.keras.Model):
-    def __init__(self, nplanets, senders, receivers, noise_level = 0.):
+    def __init__(self, nplanets, senders, receivers, norm_layer, noise_level = 0.):
         super(LearnForces, self).__init__()
         self.noise_level = noise_level
         self.senders = senders
@@ -103,7 +101,7 @@ class LearnForces(tf.keras.Model):
             constraint=lambda z: tf.clip_by_value(z, -12, 12)
         )
         
-        norm_layer = Normalize_gn()
+        #norm_layer = Normalize_gn()
         
         self.graph_network = gn.blocks.EdgeBlock(
             #edge_model_fn=lambda: snt.Linear(3, with_bias = False, 
@@ -160,32 +158,27 @@ class LearnForces(tf.keras.Model):
         if training == True:
             senders_g, receivers_g, signs = shuffle_senders_receivers(senders_g, 
                                                                   receivers_g)
-        else:
-            signs = np.ones(len(senders_g))
+            D=D*signs[:,np.newaxis]
         
         # Create graph
         graph_dict = { 
           "nodes": nodes_g,
-          "edges": cartesian_to_spherical_coordinates(D*signs[:,np.newaxis]), 
+          "edges": cartesian_to_spherical_coordinates(D), 
           "receivers": receivers_g, 
           "senders": senders_g ,
           #"globals": self.logG
            } 
-    
+        
+        # This step takes order 10 times longer than any other in this function
         g = gn.utils_tf.data_dicts_to_graphs_tuple([graph_dict])
-        #print('g nodes before =', g.nodes[:30])
-        #print('g edges before =', g.edges)
         g = self.graph_network(g)
-        #print('g nodes =', g.nodes[:30])
-        #print('g edges=', g.edges)
         g = g.replace(
             edges = spherical_to_cartesian_coordinates(g.edges))
         f = self.sum_forces(g)
-        #print('f =', f)
+
         a = self.get_acceleration(f, g)
-        #print('a =', a)
         if extract == True: 
-            f = tf.reshape(g.edges*signs[:,np.newaxis], shape=[-1, self.nedges, 3]).numpy()
+            f = tf.reshape(g.edges, shape=[-1, self.nedges, 3]).numpy()
             a = tf.reshape(a, shape=[-1, self.nplanets, 3]).numpy()
             return a, f
         else: 
@@ -194,6 +187,7 @@ class LearnForces(tf.keras.Model):
     def train_step(self, data):
         #if isinstance(data, tuple):
         #    data = data[0]
+
         # Unpack the data
         D, A = data
         
