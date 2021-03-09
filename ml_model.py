@@ -32,22 +32,15 @@ class Normalize_gn(tf.keras.layers.Layer):
 def mean_weighted_error(y_true, y_pred, nplanets):
     y_true = tf.reshape(y_true, shape=[-1, nplanets, 3])
     y_pred = tf.reshape(y_pred, shape=[-1, nplanets, 3])
-
-    mag_true = tf.norm(y_true, axis=-1)
-    mag_true = tf.reduce_mean(mag_true, axis = 0)
-
-    mag_pred = tf.norm(y_pred, axis=-1)
-    mag_pred = tf.reduce_mean(mag_pred, axis = 0)
-
-    weights = tf.abs(log10(mag_true) - log10(mag_pred))
-    ones = tf.ones(shape=[nplanets,])
-    weights = tf.maximum(weights, ones)
+    x = (y_true - y_pred)
+    x = tf.reduce_sum(tf.square(x), axis = -1)
+    x = tf.reduce_sum(x, axis = 0)
     
-    x = (y_pred - y_true)/tf.norm(y_true, axis = -1, keepdims=True)
-    x = tf.norm(x, axis=-1)
-    loss = tf.reduce_mean(x, axis = 0)
-    loss = tf.reduce_mean(loss*weights)    
-    
+    x2 = (y_true)
+    x2 = tf.reduce_sum(tf.square(x2), axis = -1)
+    x2 = tf.reduce_sum(x2, axis = 0)
+
+    loss = tf.reduce_sum(x/x2)      
     return loss
 
 class MeanWeightedError(tf.keras.metrics.Metric):
@@ -81,7 +74,7 @@ class LearnForces(tf.keras.Model):
         self.opt2 = tf.keras.optimizers.Adam(learning_rate=1e-3)
         #self.test_loss_metric = tf.keras.metrics.MeanAbsoluteError(name='test_loss')
         
-        logm_init = tf.random_normal_initializer(mean=0.0, stddev=5.0)
+        logm_init = tf.random_normal_initializer(mean=0.0, stddev=1.0)
         #logm_init = tf.constant_initializer(np.log10(masses[1:]))
         #logG_init = tf.constant_initializer(np.log10(G/A_norm))
         #logG_init = tf.random_normal_initializer(mean=0.0, stddev=1.0)
@@ -224,6 +217,8 @@ class LearnForces(tf.keras.Model):
         grads2 = gradients[len(var_list1):]
         #grads1, _ = tf.clip_by_global_norm(grads1, 5.0)
         #grads2, _ = tf.clip_by_global_norm(grads2, 5.0)
+        #grads1 = [tf.clip_by_value(i, -5, 5) for i in grads1]
+        #grads2 = [tf.clip_by_value(i, -5, 5) for i in grads2]
         train_op1 = self.opt1.apply_gradients(zip(grads1, var_list1))
         train_op2 = self.opt2.apply_gradients(zip(grads2, var_list2)) 
         train_op = tf.group(train_op1, train_op2)        
