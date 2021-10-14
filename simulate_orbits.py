@@ -18,7 +18,7 @@ DAY = 24*3600. # Day in seconds
 YEAR = 365.25*DAY
 MSUN = 1.98892 * 10**30 # Solar mass
 MEARTH = 5.9742 * 10**24 # Earth mass
-G = 6.67428e-11/AU**3*MSUN*YEAR**2 # The gravitational constant G in AU**3 /MSUN/ YEAR^2
+G = 6.67428e-11/AU**3*MSUN*DAY**2 # The gravitational constant G in AU**3 /MSUN/ YEAR^2
 
 class Body:
     """
@@ -92,7 +92,7 @@ class Body:
         self.pos = np.array([x, y, 0])
         self.vel = np.array([vx, -vy, 0])
 
-    def interaction(self, other):
+    def interaction(self, other, G):
         """Returns the acceleration due to gravitational interaction with 
         another body
         
@@ -108,6 +108,7 @@ class Body:
         
         #Calculate the acceleration using Newtonian Gravity
         self.acc += G*other.mass*delta_pos/dist**3.
+        
 
     def update(self, delta_time):
         """Updates the position and velocity of the body after a time step
@@ -136,7 +137,7 @@ def random_two_vector():
     y = np.sin(phi)
     return np.array([x,y])
 
-def simulate(bodies, total_time, delta_time):
+def simulate(bodies, total_time, delta_time, G, save = False):
     """
     Simulates the orbits for a certain period of time, and stores the results
     as a panda array. 
@@ -152,34 +153,41 @@ def simulate(bodies, total_time, delta_time):
     """
 
     time = 0 # Current time
+    nsteps = int(total_time//delta_time)
+    nbodies = int(len(bodies))
+    orbits = np.empty([nsteps, nbodies, 6])
 
-    while time<total_time: 
+    for i in range(nsteps):
+        j=0
         for body in bodies: 
             body.acc = (0,0,0) # Restart acceleration
             for other_body in bodies: 
                 if body is not other_body: # Not sum over interaction with self
                     # Sum over interactions with all other bodies
-                    body.interaction(other_body) 
+                    body.interaction(other_body, G) 
 
             body.update(delta_time) # Update position and velocity of each body
-            body.orbit.append(np.concatenate(
-             (body.pos, body.vel))) # Store position of each body (in AU)
+            orbits[i, j, :] = np.concatenate([body.pos, body.vel]) # Store position of each body (in AU)
+            j+=1 
 
         time += delta_time # Update total time
 
-    # Create the pandas DataFrame for each orbit
-    orbits = []
-    for body in bodies:
-        file_name = './orbits/'+body.name # File name to use for saving
-        
-        # Store as pandas array
-        # df = pd.DataFrame(body.orbit, columns = ['x[AU]', 'y[AU]', 'z[AU]'])
-        # df.to_pickle(file_name)
- 
-        # Store as numpy array
-        orbits.append(np.asarray(body.orbit)) #convert orbit into numpy array
+    if save == True:
+        # Create the pandas DataFrame for each orbit
+        orbits = []
+        for body in bodies:
+            file_name = './orbits/'+body.name # File name to use for saving
+            
+            # Store as pandas array
+            # df = pd.DataFrame(body.orbit, columns = ['x[AU]', 'y[AU]', 'z[AU]'])
+            # df.to_pickle(file_name)
+    
+            # Store as numpy array
+            orbits.append(np.asarray(body.orbit)) #convert orbit into numpy array
 
-    np.save(file_name, orbits)#, header = 'x[AU]', 'y[AU]', 'z[AU]') 
+        np.save(file_name, orbits)#, header = 'x[AU]', 'y[AU]', 'z[AU]') 
+
+    return orbits
 
 def main():
     """
@@ -187,8 +195,8 @@ def main():
     and starts it
     """
 
-    delta_time = 1*DAY/YEAR # The time interval to be used in years
-    total_time = 400*DAY/YEAR # Total time of the Simulation in years
+    delta_time = (1/24.)*DAY/YEAR # The time interval to be used in years (1 hour)
+    total_time = 1. # Total time of the Simulation in years
 
     # Define Astronomical bodies. Data taken from: 
     # http://nssdc.gsfc.nasa.gov/planetary/factsheet/
@@ -196,7 +204,7 @@ def main():
     # Sun
     sun = Body() 
     sun.name = 'Sun'
-    sun.mass = 1./SUN # Solar masses
+    sun.mass = 1. # Solar masses
     sun.pos = np.zeros(3)  
     sun.vel = np.zeros(3) 
 
@@ -205,24 +213,26 @@ def main():
     mercury.name = 'Mercury'
     mercury.mass = 0.33011 * 10**24/MSUN # Solar masses
     mercury.pos = np.array([0.387, 0., 0.]) #AU
-    mercury.vel = np.array([0., -47.36 * 1000/AU*YEAR, 0.]) #AU/YEAR 
+    mercury.vel = np.array([0., -47.36 * 1000/AU*DAY, 0.]) #AU/YEAR 
 
     #Venus
     venus = Body()
     venus.name = 'Venus'
     venus.mass = 4.8685 * 10**24/MSUN # Solar masses
     venus.pos = np.array([0.723, 0., 0.]) #AU
-    venus.vel = np.array([0.,-35.02 * 1000/AU*YEAR, 0.]) #AU/Y
+    venus.vel = np.array([0.,-35.02 * 1000/AU*DAY, 0.]) #AU/Y
 
     # Earth
     earth = Body()
     earth.name = 'Earth'
-    earth.mass = MEARTH/MSUN # Solar masses
+    earth.mass = MEARTH/MSUN
     earth.pos = np.array([-1.,0.,0.]) # AU
-    earth.vel = np.array([0.,29.783*1000/AU*YEAR,0.])# AU/Y
+    earth.vel = np.array([0.,29.783*1000/AU*DAY,0.])# AU/Y
 
     #Run the simulation
-    simulate([sun, mercury, venus, earth], total_time, delta_time)
+    orbits = simulate([sun, mercury, venus, earth], total_time, delta_time, G)
+
+    return orbits
 
 if __name__ == '__main__':
     main()
