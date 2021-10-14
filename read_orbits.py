@@ -1,4 +1,4 @@
-''' 
+'''
 Read NASA planetary orbits, download from https://ssd.jpl.nasa.gov/horizons.cgi#top
 with format X, Y, Z, VX, VY, VZ format them, and return two data vectors, one 
 containing positions and one containing accelerations. 
@@ -39,7 +39,7 @@ def read_orbit(name, path):
 
     return orbit
 
-def add_moons(name, orbits_ls, masses_ls, names_ls, use_moons, path):
+def add_moons(name, orbits_ls, masses_ls, names_ls, use_moons, path, read_data):
     ''' If not using moons, corrects the orbit by changing it to the center 
     of mass of the planet + moons system. Else, add the moons to the list of 
     orbits
@@ -57,6 +57,8 @@ def add_moons(name, orbits_ls, masses_ls, names_ls, use_moons, path):
         whether to treat the moons as separate bodies.
     path: string
         the path to the orbit files
+    read_data: bool
+        whether to read data files, or just masses and names
 
     Returns: 
     --------
@@ -72,29 +74,50 @@ def add_moons(name, orbits_ls, masses_ls, names_ls, use_moons, path):
         i = planet_names.index(name)
         j = planets_with_moons.index(name)
         for (moon, mass_moon) in zip(moon_names[j],moon_masses[j]):
-            orbit_moon = read_orbit(moon, path)
+            if read_data:
+                orbit_moon = read_orbit(moon, path)
             # If the moons are not being treated as separate bodies, we change
-            # the orbit of the planets by the orbit of the Center of Mass of 
-            # the planet and orbit system. 
+            # the orbit of the planets by the orbit of the Center of Mass of
+            # the planet and orbit system.
             if use_moons == False:
                 #print('Adding data for', moon)
                 orbits_ls[-1] += orbit_moon*mass_moon/planet_masses[i]
 
             # Else, add each moon
             else:
-                print('Reading data for', moon)
-                orbits_ls.append(orbit_moon)
+                if read_data:
+                    print('Reading data for', moon)
+                    orbits_ls.append(orbit_moon)
                 masses_ls.append(mass_moon)
                 names_ls.append(moon)
 
-    
+    learned_masses = np.load('./saved_models/learned_masses_7.npy')
+
+    bodies_sim = []
+    bodies_learned = []
+    for i in range(nplanets):
+        body = Body()
+        body.name = names[i]
+        body.mass = masses[i] / masses[0]  # Solar masses
+        body.pos = copy(data[0, i, :3])
+        body.vel = copy(data[0, i, 3:])  # *365.25 # Convert velocity to AU/Y
+        bodies_sim.append(body)
+
+        body_learned = Body()
+        body_learned.name = names[i]
+        body_learned.mass = 10 ** (learned_masses[i])  # Solar masses
+        body_learned.pos = copy(data[0, i, :3])
+        body_learned.vel = copy(data[0, i, 3:])  # *365.25 # Convert velocity to AU/Y
+        bodies_learned.append(body_learned)
     return orbits_ls, masses_ls, names_ls
+
 
 
 def main(nplanets = 0, 
               use_moons = False, 
               frame = 'b', 
-              path = './nasa_orbits/'):
+              path = './nasa_orbits/',
+              read_data = True):
     ''' Reads the data files and returns a numpy array with the orbits 
     Parameters: 
     -----------
@@ -109,6 +132,8 @@ def main(nplanets = 0,
     path: string
         the path to the orbit files. It should contain two folders: 'barycenter'
         and 'sun_center'
+    read_data: bool
+        whether to read data files, or just masses and names, Defauls to true
 
     Returns: 
     --------
@@ -137,33 +162,37 @@ def main(nplanets = 0,
     if nplanets == 0: 
         nplanets = 8
 
-    # Read the sun's orbit
-    orbit_sun = read_orbit('sun', path)
-    # Create a list that will contain all the orbits
-    orbits_ls = [orbit_sun]
+    if read_data:
+        # Read the sun's orbit
+        orbit_sun = read_orbit('sun', path)
+        # Create a list that will contain all the orbits
+        orbits_ls = [orbit_sun]
     # Create a list that will contain all the masses
+    else:
+        orbits_ls = []
     masses_ls = [sun_mass]
     names_ls = ['sun']
 
     for i in range(nplanets):
         name = planet_names[i]
-        print('Reading data for', name)
-        orbit = read_orbit(name, path)
-        orbits_ls.append(orbit)
+        if read_data:
+            print('Reading data for', name)
+            orbit = read_orbit(name, path)
+            orbits_ls.append(orbit)
         masses_ls.append(planet_masses[i])
         names_ls.append(name)
         orbits_ls, masses_ls, names_ls = add_moons(name, orbits_ls, masses_ls,
-                                         names_ls, use_moons, path)
+                                         names_ls, use_moons, path, read_data = read_data)
 
-    orbits_data = np.stack(orbits_ls)
-    # Transpose to get an array with time, planet, axes
-    orbits_data = orbits_data.transpose(2,0,1)
+    if read_data:
+        orbits_data = np.stack(orbits_ls)
+        # Transpose to get an array with time, planet, axes
+        orbits_data = orbits_data.transpose(2,0,1)
+        print('Finished reading data')
+        print('The data array contains', len(orbits_data[0]), 'bodies.')
     
     # Convert list of masses to numpy array
     masses = np.asarray(masses_ls)
-
-    print('Finished reading data')
-    print('The data array contains', len(orbits_data[0]), 'bodies.')
 
     # If the frame is sub center, need to change things.
     if frame[0] == 's':
@@ -174,7 +203,9 @@ def main(nplanets = 0,
         V_ref = np.sum(P, axis = 1,keepdims=True)/np.sum(masses)
         orbits_data[:,:,3:] -= V_ref
 
-    return orbits_data, masses, names_ls
-
+    if read_data:
+        return orbits_data, masses, names_ls
+    else:
+        return masses, names_ls
 
                     
