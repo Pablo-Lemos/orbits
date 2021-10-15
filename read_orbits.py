@@ -93,22 +93,6 @@ def add_moons(name, orbits_ls, masses_ls, names_ls, use_moons, path, read_data):
 
     learned_masses = np.load('./saved_models/learned_masses_7.npy')
 
-    bodies_sim = []
-    bodies_learned = []
-    for i in range(nplanets):
-        body = Body()
-        body.name = names[i]
-        body.mass = masses[i] / masses[0]  # Solar masses
-        body.pos = copy(data[0, i, :3])
-        body.vel = copy(data[0, i, 3:])  # *365.25 # Convert velocity to AU/Y
-        bodies_sim.append(body)
-
-        body_learned = Body()
-        body_learned.name = names[i]
-        body_learned.mass = 10 ** (learned_masses[i])  # Solar masses
-        body_learned.pos = copy(data[0, i, :3])
-        body_learned.vel = copy(data[0, i, 3:])  # *365.25 # Convert velocity to AU/Y
-        bodies_learned.append(body_learned)
     return orbits_ls, masses_ls, names_ls
 
 
