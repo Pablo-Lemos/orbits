@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
     # plot size in cm. Has to match to draft to make sure font sizes are consistent
     x_size = 18
-    y_size = 7.0
+    y_size = 6.0
     main_fontsize = 10.0
 
     # start the plot:
@@ -66,17 +66,17 @@ if __name__ == "__main__":
 
     # do the plot:
     for i, score in enumerate(scores_plot):
-        ax1.hist(centroids_all[i], bins = len(score), weights = score, color = colors[i], label = eqs_plot[i])
+        ax1.hist(centroids_all[i], bins = len(score), weights = score, color = colors[i], edgecolor = 'black', label = eqs_plot[i])
 
     ax1.set_xticks(xticks);
     ax1.set_xticklabels(xticklabels);
 
     # label on the axis:
-    ax1.set_xlabel('Complexity', fontsize=main_fontsize);
-    ax1.set_ylabel('Score', fontsize=main_fontsize);
+    ax1.set_xlabel('Equation complexity', fontsize=main_fontsize);
+    ax1.set_ylabel(r'Score = $ \delta \log (\mathrm{MSE} ) / \delta \log (\mathrm{comp}) $', fontsize=main_fontsize);
 
     # update dimensions:
-    bottom=0.15; top=0.99; left=0.09; right=0.99; wspace=0.03; hspace=0.05
+    bottom=0.18; top=0.99; left=0.09; right=0.99; wspace=0.03; hspace=0.05
     gs.update( bottom=bottom, top=top, left=left, right=right, wspace=wspace, hspace=hspace )
 
     # legends:
@@ -95,6 +95,6 @@ if __name__ == "__main__":
     leg.get_title().set_fontsize(main_fontsize)
 
     # save:
-    plt.savefig(out_folder+'plot_symreg.pdf')
+    #plt.savefig(out_folder+'plot_symreg.pdf')
 
     plt.show()

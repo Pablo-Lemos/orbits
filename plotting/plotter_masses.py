@@ -33,10 +33,10 @@ if __name__ == "__main__":
     ###############################################################################
     # pre computations:
 
-    N = 6
+    N = 9
     masses_learned = np.zeros([N, 31])
     for i in range(N):
-        masses_learned[i] = np.load('../saved_models/learned_masses_' + str(i + 1) + '.npy')
+        masses_learned[i] = np.load('../saved_models/learned_masses_fixed_' + str(i + 1) + '.npy')
 
     nplanets = 8  #  Number of planets (not counting the sun)
     masses, names = read_orbits.main(nplanets=nplanets, frame='b', use_moons=True,
@@ -113,6 +113,6 @@ if __name__ == "__main__":
     leg.get_title().set_fontsize(main_fontsize)
 
     # save:
-    plt.savefig(out_folder+'plot_masses.pdf')
+    plt.savefig(out_folder+'plot_masses_better.pdf')
 
     plt.show()
