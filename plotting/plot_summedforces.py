@@ -86,9 +86,9 @@ if __name__ == "__main__":
     ax1.plot(summed_potentials[indices_moons], mass_error[indices_moons], "o", color=colors[1], alpha=1,
              markersize=3, label="Moons")
 
-    #ax1.annotate("Mercury", (summed_potentials[1], mass_error[1]))
-    #ax1.annotate("Venus", (summed_potentials[2], mass_error[2]))
-    #ax1.annotate("Mars", (summed_potentials[5], mass_error[5]))
+    ax1.annotate("Hyperion", (summed_potentials[18], mass_error[18]), fontsize=0.7 * main_fontsize)
+    ax1.annotate("Phoebe", (summed_potentials[20], mass_error[20]), fontsize=0.7 * main_fontsize)
+    ax1.annotate("Nereid", (summed_potentials[29], mass_error[29]-5), fontsize=0.7 * main_fontsize)
 
 
     moon_mapping = map(names.__getitem__, indices_moons)

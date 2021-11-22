@@ -17,39 +17,17 @@ if __name__ == "__main__":
     ###############################################################################
     # initial setup:
     nplanets = 8  #  Number of planets (not counting the sun)
-    data, masses, names = read_orbits.main(nplanets=nplanets, frame='b', use_moons=True,
-                                           path='/Users/pablo/Dropbox/data/orbits/7parts/full//')
-    nplanets = len(data[0])
-    nedges = nplanets * (nplanets - 1) // 2
+    masses, names = read_orbits.main(nplanets=nplanets, frame='b', use_moons=True,
+                                     path='/Users/pl332/Dropbox/data/orbits/7parts/full//',
+                                     read_data=False)
 
+    data = np.load('/Users/pl332/Documents/PycharmProjects/orbits/saved_models/array_data.npy')
+    data_gnets = np.load('/Users/pl332/Documents/PycharmProjects/orbits/saved_models/array_gnets.npy')
+    sim_learned = np.load('/Users/pl332/Documents/PycharmProjects/orbits/saved_models/array_sr.npy')
     learned_masses = np.load('../saved_models/learned_masses_7.npy')
 
-    ###############################################################################
-    # integrate the trajectories:
-    bodies_sim = []
-    bodies_learned = []
-    for i in range(nplanets):
-        body = Body()
-        body.name = names[i]
-        body.mass = masses[i] / masses[0]  # Solar masses
-        body.pos = copy(data[0, i, :3])
-        body.vel = copy(data[0, i, 3:])  # *365.25 # Convert velocity to AU/Y
-        bodies_sim.append(body)
-
-        body_learned = Body()
-        body_learned.name = names[i]
-        body_learned.mass = 10 ** (learned_masses[i])  # Solar masses
-        body_learned.pos = copy(data[0, i, :3])
-        body_learned.vel = copy(data[0, i, 3:])  # *365.25 # Convert velocity to AU/Y
-        bodies_learned.append(body_learned)
-
-    delta_time = 0.5 * (1 / 24.)  # *DAY/YEAR # 30 minutes
-    total_time = 5. * 365  # 0.1 years
-    # The G learned divided by the learned mass of the sun,
-    G_learned = 19422207.0337081 / 10 ** (3.3537278) * 3.7630259666518835e-06 * 0.008888999709186746
-
-    # sim_orbits = simulate(bodies_sim, total_time, delta_time, G)
-    sim_learned = simulate(bodies_learned, total_time, delta_time, G_learned)
+    nplanets = len(data[0])
+    nedges = nplanets * (nplanets - 1) // 2
 
     ###############################################################################
     # Generate plot
@@ -92,7 +70,7 @@ if __name__ == "__main__":
     ax3.set_xlabel('X [AU]')
 
     ax1.set_title('Data')
-    ax2.set_title('Graph Nets')
+    ax2.set_title('Neural Network')
     ax3.set_title('Symbolic Regression')
 
     N = 10000
@@ -103,7 +81,7 @@ if __name__ == "__main__":
         ax3.scatter(sim_learned[:N, i, 0], sim_learned[:N, i, 1], s=0.1, c=colors[i], rasterized=True)
         ax1.scatter(data[N, i, 0], data[N, i, 1], marker='o', c=colors[i], rasterized=True)
         ax2.scatter(data_gnets[N, i, 0], data_gnets[N, i, 1], marker='o', c=colors[i], rasterized=True)
-        ax3.scatter(sim_learned[N, i, 0], sim_learned[N, i, 1], marker='o', c=colors[i], rasterized=True)
+        ax3.scatter(sim_learned[N, i, 0], sim_learned[N, i, 1], marker='o', c=colors[i], rasterized=True, label = names[i].capitalize())
 
     ax1.scatter(data[:N, 3, 0], data[:N, 3, 1], s=0.1, c=colors[3], rasterized=True)
     ax2.scatter(data_gnets[:N, 3, 0], data_gnets[:N, 3, 1], s=0.1, c=colors[3], rasterized=True)
@@ -112,15 +90,30 @@ if __name__ == "__main__":
     ax2.scatter(data_gnets[N, 3, 0], data_gnets[N, 3, 1], marker='o', c=colors[3], rasterized=True)
     ax3.scatter(sim_learned[N, 3, 0], sim_learned[N, 3, 1], marker='o', c=colors[3], rasterized=True)
 
+    # legends:
+    leg = ax3.legend(fontsize=0.9 * main_fontsize,
+                     frameon=True,
+                     fancybox=True,
+                     edgecolor='k',
+                     ncol=1,
+                     borderaxespad=0.0,
+                     columnspacing=2.0,
+                     handlelength=1.4,
+                     #loc='right',
+                     bbox_to_anchor=(1.05, 0.9)
+                     )
+    leg.get_frame().set_linewidth('0.8')
+    leg.get_title().set_fontsize(main_fontsize)
+
     # update dimensions:
-    bottom = 0.25
-    # top = 0.99
-    # left = 0.01
-    # right = 0.99
-    # wspace = 0.
-    # hspace = 0.
-    gs.update(bottom=bottom,  # top=top, left=left, right=right,
-              #                  wspace=wspace, hspace=hspace
+    bottom = 0.2
+    top = 0.85
+    left = 0.1
+    right = 0.85
+    wspace = 0.
+    hspace = 0.
+    gs.update(bottom=bottom, top=top, left=left, right=right,# wspace=wspace, hspace=hspace
               )
 
-    plt.savefig('../paper_plots/plot_rollout.pdf')
+    #plt.show()
+    plt.savefig('../paper_plots/plot_rollout.pdf', dpi=200)
