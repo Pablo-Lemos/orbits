@@ -92,7 +92,7 @@ class Body:
         self.pos = np.array([x, y, 0])
         self.vel = np.array([vx, -vy, 0])
 
-    def interaction(self, other, G):
+    def interaction(self, other, G, inter = None):
         """Returns the acceleration due to gravitational interaction with 
         another body
         
@@ -105,9 +105,12 @@ class Body:
         # Compute distance to the other body
         delta_pos = other.pos - self.pos
         dist = np.sum(delta_pos**2.)**0.5
-        
-        #Calculate the acceleration using Newtonian Gravity
-        self.acc += G*other.mass*delta_pos/dist**3.
+
+        if not inter:
+            #Calculate the acceleration using Newtonian Gravity
+            self.acc += G*other.mass*delta_pos/dist**3.
+        else:
+            self.acc += inter(self.mass, other.mass, delta_pos, dist)/self.mass
         
 
     def update(self, delta_time):
@@ -137,7 +140,7 @@ def random_two_vector():
     y = np.sin(phi)
     return np.array([x,y])
 
-def simulate(bodies, total_time, delta_time, G, save = False):
+def simulate(bodies, total_time, delta_time, G, save = False, inter = None):
     """
     Simulates the orbits for a certain period of time, and stores the results
     as a panda array. 
@@ -164,7 +167,7 @@ def simulate(bodies, total_time, delta_time, G, save = False):
             for other_body in bodies: 
                 if body is not other_body: # Not sum over interaction with self
                     # Sum over interactions with all other bodies
-                    body.interaction(other_body, G) 
+                    body.interaction(other_body, G, inter)
 
             body.update(delta_time) # Update position and velocity of each body
             orbits[i, j, :] = np.concatenate([body.pos, body.vel]) # Store position of each body (in AU)
