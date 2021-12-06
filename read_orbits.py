@@ -91,8 +91,6 @@ def add_moons(name, orbits_ls, masses_ls, names_ls, use_moons, path, read_data):
                 masses_ls.append(mass_moon)
                 names_ls.append(moon)
 
-    learned_masses = np.load('./saved_models/learned_masses_7.npy')
-
     return orbits_ls, masses_ls, names_ls
 
 
