@@ -2,18 +2,19 @@
 Data for symbolic regression plot
 """
 
-eq_0 = r"${C_1 m_0 m_1 x / r^3}$"  #r"$(((m0 * m1) * x) * (((1511.1415 / r) / r) / r))$"
-eq_1 = r"$x/r$"
-eq_2 = r"$x / [r (r + C_1)]$"
+eq_0 = r"${C_1 m_0 m_1 x \over r^3}$"  #r"$(((m0 * m1) * x) * (((1511.1415 / r) / r) / r))$"
+eq_1 = r"$x \over r$"
+eq_2 = r"$x \over [r (r + C_1)]$"
 eq_3 = r"$(x / ((C_1 + (r / (m0 + m1))) * r))$"
-eq_4 = r"${x / (r + C_1)}$"  #r"$(x / (C_1 + r))$"
+eq_4 = r"${x \over (r + C_1)}$"  #r"$(x / (C_1 + r))$"
 eq_5 = r"$(((C_1 * m0) * m1) * x)$"
 eq_6 = r"$(((m0 * m1) * x) * (C_1 / r))$"
-eq_7 = r"${C_1 m_0 m_1 x / r^2}$"  #r"$(((m0 * m1) * x) * ((C_1 / r) / r))$"
+eq_7 = r"${C_1 m_0 m_1 x \over r^2}$"  #r"$(((m0 * m1) * x) * ((C_1 / r) / r))$"
 eq_8 = r"$(x / (r + (C_1 * m0  * m1)))$"
-eq_9 = r"${C_1 x / (C_2 - r)}$"  #r"$(C_1 * (x / (C_2 - r)))$"
+eq_9 = r"${C_1 x \over (C_2 - r)}$"  #r"$(C_1 * (x / (C_2 - r)))$"
 eq_10 = r"$((x / ((0.14728448 / (0.3292896 - x)) + r)) / r)$"
 eq_11 = r"$(2.1578069 / ((r / x) + (x / (m0 + m1))))$"
+eq_12 = r"$C_1 + {C_2 m_0 m_1 x \over r^3}$"
 
 comp_0 = 13
 comp_1 = 3
@@ -27,9 +28,10 @@ comp_8 = 11
 comp_9 = 7
 comp_10 = 11
 comp_11 = 11
+comp_12 = 17
 
-eq_list = [eq_1, eq_2, eq_3, eq_4, eq_5, eq_6, eq_7, eq_8, eq_9, eq_10, eq_11, eq_0]
-comp_list = [comp_1, comp_2, comp_3, comp_4, comp_5, comp_6, comp_7, comp_8, comp_9, comp_10, comp_11, comp_0]
+eq_list = [eq_1, eq_2, eq_3, eq_4, eq_5, eq_6, eq_7, eq_8, eq_9, eq_10, eq_11, eq_12, eq_0]
+comp_list = [comp_1, comp_2, comp_3, comp_4, comp_5, comp_6, comp_7, comp_8, comp_9, comp_10, comp_11, comp_12, comp_0]
 
 zipped_lists = zip(comp_list, eq_list)
 sorted_pairs = sorted(zipped_lists)
@@ -41,21 +43,21 @@ eqs_1 = [eq_1, eq_2, eq_3, eq_0]
 losses_1 = [4.227e-01, 2.018e-01, 1.260e-01, 7.469e-04]
 scores_1 = [4.306e-01, 3.126e-01, 2.322e-01, 2.564e+00]
 
-eqs_2 = [eq_1, eq_4, eq_5, eq_6, eq_7, eq_8]
-losses_2 = [6.028e-01, 2.646e-01, 1.137e-01, 3.619e-02, 1.615e-02, 2.202e-05]
-scores_2 = [2.531e-01, 4.117e-01, 4.223e-01, 5.725e-01, 4.034e-01, 3.299e+00]
+eqs_2 = [eq_1, eq_4, eq_5, eq_6, eq_7, eq_8, eq_12]
+losses_2 = [6.028e-01, 2.646e-01, 1.137e-01, 3.619e-02, 1.615e-02, 2.202e-05, 2.200e-5]
+scores_2 = [2.531e-01, 4.117e-01, 4.223e-01, 5.725e-01, 4.034e-01, 3.299e+00, 4.259e-4]
 
 eqs_3 = [eq_1, eq_2, eq_8, eq_0]
 losses_3 = [5.842e-01, 4.484e-01, 2.393e-01, 5.695e-04]
 scores_3 = [2.688e-01, 1.294e-01, 3.107e-01, 3.020e+00]
 
-eqs_4 = [eq_1, eq_4, eq_9, eq_7, eq_0]
-losses_4 = [6.335e-01, 2.634e-01, 3.308e-02, 1.244e-02, 5.972e-04]
-scores_4 = [2.283e-01, 4.388e-01, 1.037e+00, 4.311e-01, 1.518e+00]
+eqs_4 = [eq_1, eq_4, eq_9, eq_7, eq_0, eq_12]
+losses_4 = [6.335e-01, 2.634e-01, 3.308e-02, 1.244e-02, 5.972e-04, 5.968e-04]
+scores_4 = [2.283e-01, 4.388e-01, 1.037e+00, 4.311e-01, 1.518e+00, 2.746e-04]
 
-eqs_5 = [eq_1, eq_4, eq_9, eq_7, eq_0]
-losses_5 = [6.624e-01, 1.845e-01, 4.607e-02, 2.860e-02, 7.957e-05]
-scores_5 = [2.059e-01, 6.392e-01, 6.937e-01, 2.109e-01, 2.942e+00]
+eqs_5 = [eq_1, eq_4, eq_9, eq_7, eq_0, eq_12]
+losses_5 = [6.624e-01, 1.845e-01, 4.607e-02, 2.860e-02, 7.957e-05, 7.930e-05]
+scores_5 = [2.059e-01, 6.392e-01, 6.937e-01, 2.109e-01, 2.942e+00, 3.491e-04]
 
 eqs_6 = [eq_1, eq_4, eq_10, eq_0]
 losses_6 = [4.904e-01, 3.185e-01, 1.794e-01, 4.679e-04]
@@ -93,5 +95,6 @@ for eq in eq_list:
             loss_temp.append(losses_all[i][index])
             scores_temp.append(scores_all[i][index])
 
+    scores_temp.sort()
     losses_list.append(loss_temp)
     scores_list.append(scores_temp)
