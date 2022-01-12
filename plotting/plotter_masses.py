@@ -155,8 +155,16 @@ if __name__ == "__main__":
     ax12.set_xscale('log')
     ax12.set_yscale('log')
 
-    ax11.set_title('Graph Network + Symbolic Regression', loc='center', fontsize=1.2 * main_fontsize)
-    ax21.set_title('Graph Network + Symbolic Regression + relearned masses', loc='center', fontsize=1.2 * main_fontsize)
+    ax11.set_title('Fig. 4A: Graph network + symbolic regression', loc='center',
+                   fontsize=1.1 * main_fontsize)
+    ax12.set_title('Fig. 4B: Grav influence',
+                   loc='center',
+                   fontsize=1.1 * main_fontsize)
+    ax21.set_title('Fig. 4C: Graph network + symbolic regression + relearned '
+                   'masses', loc='center', fontsize=1.1 * main_fontsize)
+    ax22.set_title('Fig. 4D: Grav influence',
+                   loc='center',
+                   fontsize=1.1 * main_fontsize)
 
 
     ax12.set_xticklabels([])
