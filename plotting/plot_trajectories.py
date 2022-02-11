@@ -23,14 +23,19 @@ if __name__ == "__main__":
         os.mkdir(out_folder)
 
     nplanets = 8  #  Number of planets (not counting the sun)
-    masses, names = read_orbits.main(nplanets=nplanets, frame='b', use_moons=True,
+    masses, names = read_orbits.main(nplanets=nplanets, frame='b',
+                                     use_moons=True,
                                      path='/Users/pl332/Dropbox/data/orbits/7parts/full//',
                                      read_data=False)
 
-    data = np.load('/Users/pl332/Documents/PycharmProjects/orbits/saved_models/arrays/array_data.npy')
-    data_gnets = np.load('/Users/pl332/Documents/PycharmProjects/orbits/saved_models/arrays/array_gnets.npy')
-    sim_learned = np.load('/Users/pl332/Documents/PycharmProjects/orbits/saved_models/arrays/array_sr.npy')
-    final = np.load('/Users/pl332/Documents/PycharmProjects/orbits/saved_models/arrays/array_sr_masses.npy')
+    data = np.load(
+        '/Users/pl332/Documents/PycharmProjects/orbits/saved_models/arrays/array_data.npy')
+    data_gnets = np.load(
+        '/Users/pl332/Documents/PycharmProjects/orbits/saved_models/arrays/array_gnets.npy')
+    sim_learned = np.load(
+        '/Users/pl332/Documents/PycharmProjects/orbits/saved_models/arrays/array_sr.npy')
+    final = np.load(
+        '/Users/pl332/Documents/PycharmProjects/orbits/saved_models/arrays/array_sr_masses.npy')
 
     learned_masses = np.load('../saved_models/learned_masses_1.npy')
 
@@ -86,87 +91,128 @@ if __name__ == "__main__":
     ax31.set_xlabel('X [AU]')
     ax32.set_xlabel('X [AU] + $\Delta t$')
     ax11.set_ylabel('Y [AU]')
-    #ax2.set_xlabel('X [AU]')
-    #ax3.set_xlabel('X [AU]')
+    # ax2.set_xlabel('X [AU]')
+    # ax3.set_xlabel('X [AU]')
     ax21.set_ylabel('Y [AU]')
     ax31.set_ylabel('Y [AU]')
 
-    ax12.set_title('Graph Network', loc='left', fontsize = 1.2*main_fontsize)
-    ax22.set_title('Graph Network + Symbolic Regression', loc='left', fontsize = 1.2*main_fontsize)
-    ax32.set_title('Graph Network + Symbolic Regression + relearned masses', loc='left', fontsize = 1.2*main_fontsize)
+    ax11.set_title('Fig. 2A: Graph Network', loc='left', fontsize=
+    1.2 * main_fontsize)
+    ax21.set_title('Fig. 2C: Graph Network + Symbolic Regression',
+                   loc='left', fontsize=1.2 * main_fontsize)
+    ax31.set_title('Fig. 2E: Graph Network + Symbolic Regression + '
+                   'relearned  masses', loc='left', fontsize=
+                   1.2 * main_fontsize)
+
+    ax12.set_title('Fig. 2B: Rollout', loc='right', fontsize=
+    1.2 * main_fontsize)
+    ax22.set_title('Fig. 2D: Rollout',
+                   loc='right', fontsize=1.2 * main_fontsize)
+    ax32.set_title('Fig. 2F: Rollout', loc='right', fontsize=1.2 * main_fontsize)
 
     N1 = 87600 // 5 // 2
-    N = 87600 // 5 * 7//4
-    delta_t = 3/20000
+    N = 87600 // 5 * 7 // 4
+    delta_t = 3 / 20000
 
     alphas = np.logspace(-3, 0, N1)
     for i in range(31):
         if i in [0, 3, 2]:
-            ax11.plot(data[:N1, i, 0], data[:N1, i, 1], c=colors[i], lw = 3, alpha = 0.2, rasterized=True)
-            ax21.plot(data[:N1, i, 0], data[:N1, i, 1], c=colors[i], lw = 3, alpha = 0.2, rasterized=True)
-            ax31.plot(data[:N1, i, 0], data[:N1, i, 1], c=colors[i], lw = 3, alpha = 0.2, rasterized=True)
-            ax11.plot(data_gnets[:N1, i, 0], data_gnets[:N1, i, 1], ls='--', c=colors[i],
-                         rasterized=True)
-            ax21.plot(sim_learned[:N1, i, 0], sim_learned[:N1, i, 1], ls='--', c=colors[i],
-                         rasterized=True)
-            ax31.plot(final[:N1, i, 0], final[:N1, i, 1], ls='--', c=colors[i], rasterized=True)
-            #ax11.scatter(data_gnets[:N1, i, 0], data_gnets[:N1, i, 1], ls = '--', s=0.1, c=colors[i], alpha = alphas, rasterized=True)
-            #ax21.scatter(sim_learned[:N1, i, 0], sim_learned[:N1, i, 1], ls = '--',s=0.1, alpha = alphas, c=colors[i], rasterized=True)
-            #ax31.scatter(final[:N1, i, 0], final[:N1, i, 1], s=0.1, ls = '--', alpha = alphas, c=colors[i], rasterized=True)
-            ax11.scatter(data[N1, i, 0], data[N1, i, 1], marker='o', alpha = 0.2, c=colors[i], rasterized=True)
-            ax21.scatter(data[N1, i, 0], data[N1, i, 1], marker='o', alpha = 0.2, c=colors[i], rasterized=True)
-            ax31.scatter(data[N1, i, 0], data[N1, i, 1], marker='o', alpha = 0.2, c=colors[i], rasterized=True)
-            ax11.scatter(data_gnets[N1, i, 0], data_gnets[N1, i, 1], marker='o', c=colors[i], rasterized=True)
-            ax21.scatter(sim_learned[N1, i, 0], sim_learned[N1, i, 1], marker='o', c=colors[i], rasterized=True)
-            ax31.scatter(final[N1, i, 0], final[N1, i, 1], marker='o', c=colors[i], rasterized=True,
-                        label=names[i].capitalize())
+            ax11.plot(data[:N1, i, 0], data[:N1, i, 1], c=colors[i], lw=3,
+                      alpha=0.2, rasterized=True)
+            ax21.plot(data[:N1, i, 0], data[:N1, i, 1], c=colors[i], lw=3,
+                      alpha=0.2, rasterized=True)
+            ax31.plot(data[:N1, i, 0], data[:N1, i, 1], c=colors[i], lw=3,
+                      alpha=0.2, rasterized=True)
+            ax11.plot(data_gnets[:N1, i, 0], data_gnets[:N1, i, 1], ls='--',
+                      c=colors[i],
+                      rasterized=True)
+            ax21.plot(sim_learned[:N1, i, 0], sim_learned[:N1, i, 1], ls='--',
+                      c=colors[i],
+                      rasterized=True)
+            ax31.plot(final[:N1, i, 0], final[:N1, i, 1], ls='--', c=colors[i],
+                      rasterized=True)
+            # ax11.scatter(data_gnets[:N1, i, 0], data_gnets[:N1, i, 1], ls = '--', s=0.1, c=colors[i], alpha = alphas, rasterized=True)
+            # ax21.scatter(sim_learned[:N1, i, 0], sim_learned[:N1, i, 1], ls = '--',s=0.1, alpha = alphas, c=colors[i], rasterized=True)
+            # ax31.scatter(final[:N1, i, 0], final[:N1, i, 1], s=0.1, ls = '--', alpha = alphas, c=colors[i], rasterized=True)
+            ax11.scatter(data[N1, i, 0], data[N1, i, 1], marker='o', alpha=0.2,
+                         c=colors[i], rasterized=True)
+            ax21.scatter(data[N1, i, 0], data[N1, i, 1], marker='o', alpha=0.2,
+                         c=colors[i], rasterized=True)
+            ax31.scatter(data[N1, i, 0], data[N1, i, 1], marker='o', alpha=0.2,
+                         c=colors[i], rasterized=True)
+            ax11.scatter(data_gnets[N1, i, 0], data_gnets[N1, i, 1], marker='o',
+                         c=colors[i], rasterized=True)
+            ax21.scatter(sim_learned[N1, i, 0], sim_learned[N1, i, 1],
+                         marker='o', c=colors[i], rasterized=True)
+            ax31.scatter(final[N1, i, 0], final[N1, i, 1], marker='o',
+                         c=colors[i], rasterized=True,
+                         label=names[i].capitalize())
 
-            ax12.plot(data[:N, i, 0]+np.arange(N)*delta_t, data[:N, i, 1], c=colors[i], alpha = 0.5, rasterized=True)
-            ax12.plot(data_gnets[:N, i, 0]+np.arange(N)*delta_t, data_gnets[:N, i, 1], ls = '--', c=colors[i], rasterized=True)
-            ax22.plot(data[:N, i, 0]+np.arange(N)*delta_t, data[:N, i, 1], c=colors[i], alpha = 0.5, rasterized=True)
-            ax22.plot(sim_learned[:N, i, 0]+np.arange(N)*delta_t, sim_learned[:N, i, 1],  ls = '--', c=colors[i], rasterized=True)
+            ax12.plot(data[:N, i, 0] + np.arange(N) * delta_t, data[:N, i, 1],
+                      c=colors[i], alpha=0.5, rasterized=True)
+            ax12.plot(data_gnets[:N, i, 0] + np.arange(N) * delta_t,
+                      data_gnets[:N, i, 1], ls='--', c=colors[i],
+                      rasterized=True)
+            ax22.plot(data[:N, i, 0] + np.arange(N) * delta_t, data[:N, i, 1],
+                      c=colors[i], alpha=0.5, rasterized=True)
+            ax22.plot(sim_learned[:N, i, 0] + np.arange(N) * delta_t,
+                      sim_learned[:N, i, 1], ls='--', c=colors[i],
+                      rasterized=True)
             if i == 3:
-                ax32.plot(data[:N, i, 0] + np.arange(N) * delta_t, data[:N, i, 1], c=colors[i], alpha=0.5 , label = 'Truth',
-                         rasterized=True)
-                ax32.plot(final[:N, i, 0]+np.arange(N)*delta_t, final[:N, i, 1],  ls = '--', c=colors[i], rasterized=True, label = 'Learned')
+                ax32.plot(data[:N, i, 0] + np.arange(N) * delta_t,
+                          data[:N, i, 1], c=colors[i], alpha=0.5, label='Truth',
+                          rasterized=True)
+                ax32.plot(final[:N, i, 0] + np.arange(N) * delta_t,
+                          final[:N, i, 1], ls='--', c=colors[i],
+                          rasterized=True, label='Learned')
             else:
-                ax32.plot(data[:N, i, 0] + np.arange(N) * delta_t, data[:N, i, 1], c=colors[i], alpha=0.5,
-                         rasterized=True)
-                ax32.plot(final[:N, i, 0]+np.arange(N)*delta_t, final[:N, i, 1],  ls = '--', c=colors[i], rasterized=True)
+                ax32.plot(data[:N, i, 0] + np.arange(N) * delta_t,
+                          data[:N, i, 1], c=colors[i], alpha=0.5,
+                          rasterized=True)
+                ax32.plot(final[:N, i, 0] + np.arange(N) * delta_t,
+                          final[:N, i, 1], ls='--', c=colors[i],
+                          rasterized=True)
 
-            ax12.scatter(data[N, i, 0]+N*delta_t, data[N, i, 1], marker='o', alpha = 0.5, c=colors[i], rasterized=True)
-            ax22.scatter(data[N, i, 0] + N * delta_t, data[N, i, 1], marker='o', alpha = 0.5, c=colors[i], rasterized=True)
-            ax32.scatter(data[N, i, 0] + N * delta_t, data[N, i, 1], marker='o', alpha = 0.5, c=colors[i], rasterized=True)
-            ax12.scatter(data_gnets[N, i, 0]+N*delta_t, data_gnets[N, i, 1], marker='o', c=colors[i], rasterized=True)
-            ax22.scatter(sim_learned[N, i, 0]+N*delta_t, sim_learned[N, i, 1], marker='o', c=colors[i], rasterized=True, label = names[i].capitalize())
-            ax32.scatter(final[N, i, 0]+N*delta_t, final[N, i, 1], marker='o', c=colors[i], rasterized=True)
+            ax12.scatter(data[N, i, 0] + N * delta_t, data[N, i, 1], marker='o',
+                         alpha=0.5, c=colors[i], rasterized=True)
+            ax22.scatter(data[N, i, 0] + N * delta_t, data[N, i, 1], marker='o',
+                         alpha=0.5, c=colors[i], rasterized=True)
+            ax32.scatter(data[N, i, 0] + N * delta_t, data[N, i, 1], marker='o',
+                         alpha=0.5, c=colors[i], rasterized=True)
+            ax12.scatter(data_gnets[N, i, 0] + N * delta_t, data_gnets[N, i, 1],
+                         marker='o', c=colors[i], rasterized=True)
+            ax22.scatter(sim_learned[N, i, 0] + N * delta_t,
+                         sim_learned[N, i, 1], marker='o', c=colors[i],
+                         rasterized=True, label=names[i].capitalize())
+            ax32.scatter(final[N, i, 0] + N * delta_t, final[N, i, 1],
+                         marker='o', c=colors[i], rasterized=True)
 
     # legends:
     leg = ax22.legend(fontsize=0.9 * main_fontsize,
-                     frameon=True,
-                     fancybox=True,
-                     edgecolor='k',
-                     ncol=1,
-                     borderaxespad=0.0,
-                     columnspacing=2.0,
-                     handlelength=1.4,
-                     #loc='right',
-                     bbox_to_anchor=(0.78, 0.56)
-                     )
+                      frameon=True,
+                      fancybox=True,
+                      edgecolor='k',
+                      ncol=1,
+                      borderaxespad=0.0,
+                      columnspacing=2.0,
+                      handlelength=1.4,
+                      # loc='right',
+                      bbox_to_anchor=(0.78, 0.56)
+                      )
     leg.get_frame().set_linewidth('0.8')
     leg.get_title().set_fontsize(main_fontsize)
 
     leg = ax32.legend(fontsize=0.9 * main_fontsize,
-                     frameon=True,
-                     fancybox=True,
-                     edgecolor='k',
-                     ncol=1,
-                     borderaxespad=0.0,
-                     columnspacing=2.0,
-                     handlelength=1.4,
-                     #loc='right',
-                     bbox_to_anchor=(0.74, 0.64)
-                     )
+                      frameon=True,
+                      fancybox=True,
+                      edgecolor='k',
+                      ncol=1,
+                      borderaxespad=0.0,
+                      columnspacing=2.0,
+                      handlelength=1.4,
+                      # loc='right',
+                      bbox_to_anchor=(0.74, 0.64)
+                      )
     leg.get_frame().set_linewidth('0.8')
     leg.get_title().set_fontsize(main_fontsize)
 
@@ -177,7 +223,8 @@ if __name__ == "__main__":
     right = 0.99
     wspace = 0.12
     hspace = .3
-    gs.update(bottom=bottom, top=top, left=left, right=right, wspace=wspace, hspace=hspace)
+    gs.update(bottom=bottom, top=top, left=left, right=right, wspace=wspace,
+              hspace=hspace)
 
     plt.savefig(out_folder + 'plot_rollout.pdf', dpi=200)
     plt.show()

@@ -76,7 +76,7 @@ if __name__ == "__main__":
     ax.set_ylim(1e-13, 1e2)
 
     ax.set_yscale("log")
-    ax.set_title('Neural Network', loc='center', fontsize=1.2*main_fontsize)
+    ax.set_title('Graph Network', loc='center', fontsize=1.2*main_fontsize)
 
     t = np.arange(N-1)/2/24/365.25
     for i in range(31):

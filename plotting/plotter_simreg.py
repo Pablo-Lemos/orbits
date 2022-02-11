@@ -146,7 +146,7 @@ if __name__ == "__main__":
 
     ax2.set_xlabel("Time (years)", fontsize=main_fontsize);
     ax2.set_ylabel(r"Error = $(x_{\rm truth} - x_{\rm pred})^2 / x_{\rm truth}^2$", fontsize=0.9*main_fontsize);
-
+    ax2.set_ylim([1e-7, 5e9])
     # legends:
     leg = ax2.legend(fontsize=0.9 * main_fontsize,
                      frameon=True,
@@ -179,7 +179,7 @@ if __name__ == "__main__":
 
 
     # update dimensions:
-    bottom=0.25; top=0.99; left=0.07; right=0.99; wspace=0.2; hspace=0.05
+    bottom=0.15; top=0.99; left=0.07; right=0.99; wspace=0.2; hspace=0.05
     gs.update( bottom=bottom, top=top, left=left, right=right, wspace=wspace, hspace=hspace )
 
     # save:
