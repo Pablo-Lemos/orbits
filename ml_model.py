@@ -54,7 +54,7 @@ class MeanWeightedError(tf.keras.metrics.Metric):
     def result(self):
         return self.mwe
 
-    def reset_states(self):
+    def reset_state(self):
         # The state of the metric will be reset at the start of each epoch.
         self.mwe.assign(0.0)
 
@@ -128,7 +128,9 @@ class LearnForces(tf.keras.Model):
         return acceleration_tr
         
     def call(self, D, training = False, extract = False):
-        ntime = len(D)//self.nedges
+        if D.shape[0] is None:
+            return D
+        ntime = int(D.shape[0]//self.nedges)
         if training == True:
             m_noise = tf.random.normal(tf.shape(self.logm_planets), 0, self.noise_level, tf.float32)
             lm = self.logm_planets*(1+ m_noise)
@@ -142,10 +144,12 @@ class LearnForces(tf.keras.Model):
 
         nodes_g = tf.concat([lm]*ntime, axis = 0)
         nodes_g = tf.expand_dims(nodes_g, 1)
-        senders_g, receivers_g = reshape_senders_receivers(self.senders, 
-                                                             self.receivers, 
-                                                             ntime, 
-                                                             self.nplanets, 
+        print(type(D), len(D), type(len(D)), D.shape, ntime,
+              type(self.nedges))
+        senders_g, receivers_g = reshape_senders_receivers(self.senders,
+                                                             self.receivers,
+                                                             ntime,
+                                                             self.nplanets,
                                                              self.nedges)
         
         if training == True:
