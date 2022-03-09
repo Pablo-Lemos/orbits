@@ -35,8 +35,7 @@ def force_newton(x, m1, m2):
 
 def read_data(num_time_steps_tr):
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    #filename = os.path.join(dir_path, 'data/solar_system_data.pkl')
-    filename = os.path.join(dir_path, 'data/debug.pkl')
+    filename = os.path.join(dir_path, 'data/solar_system_data.pkl')
     filehandler = open(filename, 'rb')
     system = pickle.load(filehandler)
     x = system.get_positions()

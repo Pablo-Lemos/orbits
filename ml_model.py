@@ -144,8 +144,6 @@ class LearnForces(tf.keras.Model):
 
         nodes_g = tf.concat([lm]*ntime, axis = 0)
         nodes_g = tf.expand_dims(nodes_g, 1)
-        print(type(D), len(D), type(len(D)), D.shape, ntime,
-              type(self.nedges))
         senders_g, receivers_g = reshape_senders_receivers(self.senders,
                                                              self.receivers,
                                                              ntime,
