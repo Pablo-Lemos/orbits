@@ -5,6 +5,7 @@ import sonnet as snt
 
 from helper_functions import *
 
+
 class Normalize_gn(tf.keras.layers.Layer):
     def __init__(self, D):
         super(Normalize_gn, self).__init__()
@@ -29,6 +30,7 @@ class Normalize_gn(tf.keras.layers.Layer):
     
         return outputs
 
+
 def mean_weighted_error(y_true, y_pred, nplanets):
     y_true = tf.reshape(y_true, shape=[-1, nplanets, 3])
     y_pred = tf.reshape(y_pred, shape=[-1, nplanets, 3])
@@ -42,6 +44,7 @@ def mean_weighted_error(y_true, y_pred, nplanets):
 
     loss = tf.reduce_sum(x/x2)      
     return loss
+
 
 class MeanWeightedError(tf.keras.metrics.Metric):
     def __init__(self, name="mean_weighted_error", **kwargs):
@@ -58,8 +61,10 @@ class MeanWeightedError(tf.keras.metrics.Metric):
         # The state of the metric will be reset at the start of each epoch.
         self.mwe.assign(0.0)
 
+
 loss_tracker = tf.keras.metrics.Mean(name='loss')
 loss_test = MeanWeightedError(name='loss_test')
+
 
 class LearnForces(tf.keras.Model):
     def __init__(self, nplanets, senders, receivers, norm_layer, noise_level = 0.):
@@ -114,7 +119,6 @@ class LearnForces(tf.keras.Model):
             use_sender_nodes = True,
             use_globals = False,
         )
-                
 
 
     def sum_forces(self, graph):

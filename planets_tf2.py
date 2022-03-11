@@ -74,72 +74,86 @@ def format_data(data_tr, data_val, system):
     num_batches = num_time_steps_tr // batch_size_tr
 
     nedges = system.numEdges
-    D_tr_np = np.empty([len(data_tr), nedges, 3])
-    D_val_np = np.empty([len(data_val), nedges, 3])
-    #F_val = np.empty([len(data_val), nedges, 3])
+
+    # Create empty arrays for the distances for training and validation
+    D_tr = np.empty([len(data_tr), nedges, 3])
+    D_val = np.empty([len(data_val), nedges, 3])
+
     k = 0
-    #names_edges = []
+    # Create empty lists for the senders and receivers that will be used for
+    # the edges of the graph
     senders, receivers = [], []
     for i in range(system.numPlanets):
         for j in range(system.numPlanets):
             if i > j:
-                d_tr = data_tr[:, j, :3] - data_tr[:, i, :3]
-                d_val = data_val[:, j, :3] - data_val[:, i, :3]
-                D_tr_np[:, k, :] = d_tr
-                D_val_np[:, k, :] = d_val
-                #F_val[:, k, :] = force_newton(d_val, masses[i], masses[
-                    #j])  # cartesian_to_spherical_coordinates(d_val)
-                #names_edges.append(names[j] + ' - ' + names[i])
+                # For every pair of objects, assign a distance
+                D_tr[:, k, :] = data_tr[:, j, :3] - data_tr[:, i, :3]
+                D_val[:, k, :] = data_val[:, j, :3] - data_val[:, i, :3]
 
                 k += 1
+                # Add sender and receiver index
                 receivers.append(i)
                 senders.append(j)
 
+    # Accelerations
     A_tr = data_tr[:, :, 3:]
     A_val = data_val[:, :, 3:]
+    # Normalization of the accelerations
     A_norm = np.std(A_tr)
 
-    D_tr_flat = np.reshape(D_tr_np, [-1, 3])
-    D_val_flat = np.reshape(D_val_np, [1, -1, 3])
+    # Flatten the arrays
+    D_tr_flat = np.reshape(D_tr, [-1, 3])
+    D_val_flat = np.reshape(D_val, [1, -1, 3])
 
     A_tr_flat = np.reshape(A_tr / A_norm, [-1, 3])
     A_val_flat = np.reshape(A_val / A_norm, [1, -1, 3])
 
-    D_tr = tf.convert_to_tensor(D_tr_flat, dtype="float32")
-    A_tr = tf.convert_to_tensor(A_tr_flat, dtype="float32")
-
-    D_tr_batches = tf.split(D_tr, num_batches)
-    A_tr_batches = tf.split(A_tr, num_batches)
+    # Convert them to tensors
+    D_tr = tf.convert_to_tensor(D_tr, dtype="float32")
+    A_tr = tf.convert_to_tensor(A_tr, dtype="float32")
 
     D_val = tf.convert_to_tensor(D_val_flat, dtype="float32")
     A_val = tf.convert_to_tensor(A_val_flat, dtype="float32")
 
+    # Split the training arrays into batches
+    D_tr_batches = tf.split(D_tr, num_batches)
+    A_tr_batches = tf.split(A_tr, num_batches)
+
+    # Convert into tensorflow dataset
     train_ds = tf.data.Dataset.from_tensor_slices(
         (D_tr_batches, A_tr_batches))
 
     test_ds = tf.data.Dataset.from_tensor_slices(
         (D_val, A_val))
 
+    # Create a normalization layer
     norm_layer = Normalize_gn(cartesian_to_spherical_coordinates(D_tr))
     return train_ds, test_ds, norm_layer, senders, receivers
 
-def main(system, train_ds, test_ds, norm_layer, senders, receivers):
-    checkpoint_filepath = './saved_models/orbits'
 
+def main(system, train_ds, test_ds, norm_layer, senders, receivers):
+    """ Main function: Create model and train"""
+
+    # Create my callbacks: early stopping and checkpoint
     early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
                                                       verbose=1,
-                                                      patience=20,
+                                                      patience=patience,
                                                       restore_best_weights=False)
-    #  Restore best weights not working, but found way around using checkpoint
+
+    # Restore best weights not working, but found way around using checkpoint
+    checkpoint_filepath = './saved_models/orbits'
 
     checkpoint = tf.keras.callbacks.ModelCheckpoint(
         filepath=checkpoint_filepath,
         save_weights_only=False,
         save_best_only=True,
         verbose=0)
+
+    # Create a model
     model = LearnForces(system.numPlanets, senders, receivers, norm_layer,
                         noise_level=noise_level)
 
+    # Compile
     # model.compile(run_eagerly=True)
     model.compile()
 
