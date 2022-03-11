@@ -114,18 +114,18 @@ def format_data(data_tr, data_val, system):
     A_norm = np.std(A_tr)
 
     # Flatten the arrays
-    D_tr_flat = np.reshape(D_tr, [-1, 3])
-    D_val_flat = np.reshape(D_val, [1, -1, 3])
+    D_tr = np.reshape(D_tr, [-1, 3])
+    D_val = np.reshape(D_val, [1, -1, 3])
 
-    A_tr_flat = np.reshape(A_tr / A_norm, [-1, 3])
-    A_val_flat = np.reshape(A_val / A_norm, [1, -1, 3])
+    A_tr = np.reshape(A_tr / A_norm, [-1, 3])
+    A_val = np.reshape(A_val / A_norm, [1, -1, 3])
 
     # Convert them to tensors
     D_tr = tf.convert_to_tensor(D_tr, dtype="float32")
     A_tr = tf.convert_to_tensor(A_tr, dtype="float32")
 
-    D_val = tf.convert_to_tensor(D_val_flat, dtype="float32")
-    A_val = tf.convert_to_tensor(A_val_flat, dtype="float32")
+    D_val = tf.convert_to_tensor(D_val, dtype="float32")
+    A_val = tf.convert_to_tensor(A_val, dtype="float32")
 
     # Split the training arrays into batches
     D_tr_batches = tf.split(D_tr, num_batches)
@@ -184,7 +184,6 @@ def main(system, train_ds, test_ds, norm_layer, senders, receivers):
 if __name__ == "__main__":
     tf.config.list_physical_devices('CPU')
     tf.config.run_functions_eagerly(False)
-    nplanets = 8  #  Number of planets (not counting the sun)
 
     data_tr, data_val, system = read_data(num_time_steps_tr, num_time_steps_val)
     print('Read data')
