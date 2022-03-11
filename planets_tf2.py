@@ -15,43 +15,52 @@ print('Started')
 # Global constants
 AU = 149.6e6 * 1000 # Astronomical Unit in meters.
 DAY = 24*3600. # Day in seconds
-YEAR = 365.25*DAY #Year
-delta_time = (0.5/24.) # 2 hours
-MSUN = 1.9885e+30
-MEARTH = 5.9724e+24
-G = 6.67428e-11/AU**3*MSUN*DAY**2
+YEAR = 365.25*DAY # Year
+delta_time = (0.5/24.) # 30 minutes
+MSUN = 1.9885e+30 # kg
+MEARTH = 5.9724e+24 # kg
+G = 6.67428e-11/AU**3*MSUN*DAY**2 # Change units of G to AU^3 MSun^{-1} Day^{-2}
 
 # Training variables
-patience = 5
-d_patience = 0
-noise_level = 0.01
-log_every_iterations = 1000
-num_training_iterations = 200000
-num_time_steps_tr = 130000  # An orbit for saturn is 129110 steps
+patience = 20 # For early stopping
+noise_level = 0.01 # Standard deviation of Gaussian noise for randomly perturbing input data
+num_epochs = 1000 # Number of training epochs. Set to large number
+num_time_steps_tr = 130000  # Number of time steps for training (~27 years).
+# One time step is 30 minutes
+# An orbit for saturn is 129110 steps
+num_time_steps_val = 10000 # Using few to speed up calculations
 
-def force_newton(x, m1, m2):
-    return G*m1*m2/np.linalg.norm(x, axis=-1, keepdims=True)**3.*x
+def read_data(num_time_steps_tr, num_time_steps_val):
+    """
+    Read the data
+    :param num_time_steps_tr: Size of training set
+    :param num_time_steps_val: Size of validation set
+    :return: training data, validation data, and a Star System object
+    containing three dimensions: Time, body, and a length 6 dimension with
+    x and v
+    """
 
-
-def read_data(num_time_steps_tr):
+    # Read the file
     dir_path = os.path.dirname(os.path.realpath(__file__))
     filename = os.path.join(dir_path, 'data/solar_system_data.pkl')
     filehandler = open(filename, 'rb')
     system = pickle.load(filehandler)
+
+    # Extract the position and velocity
     x = system.get_positions()
     v = system.get_velocities()
+
+    # Concatenate them into a numpy array
+    # Data has three dimensions: Time, body, and a length 6 dimension with x and v
     data = np.concatenate([x, v], axis=-1)
 
-    # Get the acceleration
+    # Convert velocity into acceleration
     A = data[1:, :, 3:] - data[:-1, :, 3:]
     data[:-1, :, 3:] = A / delta_time
     data = data[:-1]
 
-    # For debugging, reduce size of validation data. Really speeds things up!
-    nval = 10000
-    data = data[:(num_time_steps_tr + nval)]
-
-    #masses = system.get_masses()/MSUN
+    # Eliminate unused data
+    data = data[:(num_time_steps_tr + num_time_steps_val)]
 
     # Split into training and validation
     data_tr = data[:num_time_steps_tr]
@@ -61,13 +70,16 @@ def read_data(num_time_steps_tr):
     np.random.shuffle(data_tr)
     np.random.shuffle(data_val)
 
-    data_tr = data_tr[:num_time_steps_tr]
     return data_tr, data_val, system
 
 
 def format_data(data_tr, data_val, system):
+    """
+    Convert the data into normalized tensorflow data objects that we can
+    use for training
+    """
+
     num_time_steps_tr = len(data_tr)
-    num_time_steps_val = len(data_val)
 
     # Do not change this
     batch_size_tr = 16
@@ -158,7 +170,7 @@ def main(system, train_ds, test_ds, norm_layer, senders, receivers):
     model.compile()
 
     model.fit(train_ds,
-              epochs=1000,
+              epochs=num_epochs,
               verbose=2,
               callbacks=[early_stopping, checkpoint],
               validation_data=test_ds
@@ -174,7 +186,7 @@ if __name__ == "__main__":
     tf.config.run_functions_eagerly(False)
     nplanets = 8  #  Number of planets (not counting the sun)
 
-    data_tr, data_val, system = read_data(num_time_steps_tr)
+    data_tr, data_val, system = read_data(num_time_steps_tr, num_time_steps_val)
     print('Read data')
     train_ds, test_ds, norm_layer, senders, receivers = format_data(data_tr, data_val, system)
     print('Formatted data')

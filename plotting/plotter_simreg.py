@@ -10,9 +10,9 @@ if __name__ == "__main__":
     import os
     import numpy as np
     import matplotlib.pyplot as plt
-    import color_utilities_orig as cu
+    from plotting import color_utilities_orig as cu
     import matplotlib.gridspec as gridspec
-    import read_orbits
+    from simulator import read_orbits
     from data_symreg import *
 
     ###############################################################################

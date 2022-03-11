@@ -72,3 +72,4 @@ class StarSystem(object):
         orbits = np.stack(orbits)
         # Transpose to get an array with time, planet, axes
         return orbits.transpose(1, 0, 2)
+

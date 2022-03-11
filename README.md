@@ -15,4 +15,4 @@ You can then produce an animation from the orbits, using:
 
 The animation looks like this!
 
-![Orbits Demo](orbits/animation.gif)
+![Orbits Demo](data/animation.gif)

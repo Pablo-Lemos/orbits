@@ -8,11 +8,11 @@ if __name__ == "__main__":
     import numpy as np
     import os
     from simulate_orbits import *
-    import read_orbits
+    from simulator import read_orbits
     from matplotlib import pyplot as plt
     import matplotlib.gridspec as gridspec
     from copy import copy
-    from solar_system_names import *
+    from data.solar_system_names import *
     import matplotlib.style as style
 
     style.use('tableau-colorblind10')
