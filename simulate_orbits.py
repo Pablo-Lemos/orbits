@@ -10,7 +10,6 @@ pablo.lemos.18@ucl.ac.uk
 '''
 
 import numpy as np
-import pandas as pd
 
 #Define constants
 AU = 149.6e6 * 1000     # Astronomical Unit in meters.
