@@ -54,10 +54,8 @@ def GR_correctoin (m1, m2, distance, velocity ):
 
     """
     dist_norm = np.sum(distance ** 2.) ** 0.5
-    beta = velocity / c**2
-    #Newton_force = G * m1 * m2 * distance / dist_norm ** 3.
-    #GR_correctoin = 3 * G * m1 * m2 * distance * beta / dist_norm ** 3.
-    return (G * m1 * m2 * distance / dist_norm ** 3.) + (3 * G * m1 * m2 * distance * beta / dist_norm ** 3.)
+    beta = velocity / c
+    return (G * m1 * m2 * distance / dist_norm ** 3.) * ( 1 + (3* (beta**2)))
 
 class Body(object):
     def __init__(self, mass=0., name=''):
