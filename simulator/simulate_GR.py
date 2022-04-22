@@ -2,7 +2,7 @@
 
 '''
 Code that simulates the orbits of solar system bodies for a given force law
-(Newton's law by default)
+(Will be used for force law = Newtons Law + GR correction)
 
 Created by Pablo Lemos (UCL)
 28-11-2019
@@ -10,7 +10,7 @@ pablo.lemos.18@ucl.ac.uk
 '''
 
 import numpy as np
-from base_classes import *
+from base_classes_GR import *
 import pickle
 
 #Define constants
@@ -22,7 +22,7 @@ MEARTH = 5.9742 * 10**24 # Earth mass
 G = 6.67428e-11/AU**3*MSUN*DAY**2 # The gravitational constant G in AU**3 /MSUN/ YEAR^2
 
 
-def simulate(bodies, total_time, delta_time, force_law=None):
+def simulate_GR(bodies, total_time, delta_time, force_law=None):
     """
     Simulates the orbits for a certain period of time, and stores the results
     as a panda array.
@@ -83,25 +83,25 @@ def example():
     mercury.initiate(pos_mercury, vel_mercury)
 
     #Venus
-    venus = Body(name = 'Venus', mass = 4.8685 * 10**24/MSUN)
-    pos_venus = np.array([0.723, 0., 0.]) #AU
-    vel_venus = np.array([0.,-35.02 * 1000/AU*DAY, 0.]) #AU/Y
-    venus.initiate(pos_venus, vel_venus)
+    #venus = Body(name = 'Venus', mass = 4.8685 * 10**24/MSUN)
+    #pos_venus = np.array([0.723, 0., 0.]) #AU
+    #vel_venus = np.array([0.,-35.02 * 1000/AU*DAY, 0.]) #AU/Y
+    #venus.initiate(pos_venus, vel_venus)
 
     # Earth
-    earth = Body(name = 'Earth', mass = MEARTH/MSUN)
-    pos_earth = np.array([-1.,0.,0.]) # AU
-    vel_earth = np.array([0.,29.783*1000/AU*DAY,0.])# AU/Y
-    earth.initiate(pos_earth, vel_earth)
+    #earth = Body(name = 'Earth', mass = MEARTH/MSUN)
+    #pos_earth = np.array([-1.,0.,0.]) # AU
+    #vel_earth = np.array([0.,29.783*1000/AU*DAY,0.])# AU/Y
+    #earth.initiate(pos_earth, vel_earth)
 
     #Run the simulation
-    simulate([sun, mercury, venus, earth], total_time, delta_time)
+    simulate_GR([sun, mercury], total_time, delta_time)
 
-    return StarSystem([sun, mercury, venus, earth])
+    return StarSystem([sun, mercury])
 
 if __name__ == '__main__':
-    simulation = example()
+    simulation_GR = example()
     # To save this:
     # import pickle
-    file = open('Newton_simulation.pickle', 'wb')
-    pickle.dump(simulation, file)
+    file = open('GR_simulation.pickle', 'wb')
+    pickle.dump(simulation_GR, file)
