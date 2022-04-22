@@ -184,8 +184,13 @@ class StarSystem(object):
 
     def get_positions(self):
         orbits = []
+        timeSteps = np.infty
         for body in self._bodies:
-            orbits.append(body.get_positions())
+            x = body.get_positions()
+            currSteps = x.shape[0]
+            if currSteps < timeSteps:
+                timeSteps = currSteps
+            orbits.append(x[:timeSteps])
 
         orbits = np.stack(orbits)
         # Transpose to get an array with time, planet, axes
@@ -193,8 +198,13 @@ class StarSystem(object):
 
     def get_velocities(self):
         orbits = []
+        timeSteps = np.infty
         for body in self._bodies:
-            orbits.append(body.get_velocities())
+            v = body.get_velocities()
+            currSteps = v.shape[0]
+            if currSteps < timeSteps:
+                timeSteps = currSteps
+            orbits.append(v[:timeSteps])
 
         orbits = np.stack(orbits)
         # Transpose to get an array with time, planet, axes
