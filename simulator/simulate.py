@@ -83,7 +83,7 @@ def example():
     mercury.initiate(pos_mercury, vel_mercury)
 
     #Venus
-    venus = Body(name = 'Venus', mass = 4.8685 * 10**24/MSUN)
+    """venus = Body(name = 'Venus', mass = 4.8685 * 10**24/MSUN)
     pos_venus = np.array([0.723, 0., 0.]) #AU
     vel_venus = np.array([0.,-35.02 * 1000/AU*DAY, 0.]) #AU/Y
     venus.initiate(pos_venus, vel_venus)
@@ -92,12 +92,12 @@ def example():
     earth = Body(name = 'Earth', mass = MEARTH/MSUN)
     pos_earth = np.array([-1.,0.,0.]) # AU
     vel_earth = np.array([0.,29.783*1000/AU*DAY,0.])# AU/Y
-    earth.initiate(pos_earth, vel_earth)
+    earth.initiate(pos_earth, vel_earth)"""
 
     #Run the simulation
-    simulate([sun, mercury, venus, earth], total_time, delta_time)
+    simulate([sun, mercury], total_time, delta_time)
 
-    return StarSystem([sun, mercury, venus, earth])
+    return StarSystem([sun, mercury])
 
 if __name__ == '__main__':
     simulation = example()
