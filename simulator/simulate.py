@@ -14,12 +14,14 @@ from base_classes import *
 import pickle
 
 #Define constants
-AU = 149.6e6 * 1000     # Astronomical Unit in meters.
+# All units are DAY, AU, Solar mass
+AU = 149.6e6 * 1000 # Astronomical Unit in meters.
 DAY = 24*3600. # Day in seconds
 YEAR = 365.25*DAY
-MSUN = 1.98892 * 10**30 # Solar mass
-MEARTH = 5.9742 * 10**24 # Earth mass
-G = 6.67428e-11/AU**3*MSUN*DAY**2 # The gravitational constant G in AU**3 /MSUN/ YEAR^2
+MSUN = 1.98892 * 10**30 # Solar mass in kg
+MEARTH = 5.9742 * 10**24 # Earth mass in kg
+G = 6.67428e-11/AU**3*MSUN*DAY**2 # The gravitational constant G in AU**3
+# /MSUN/ DAY^2
 
 
 def simulate(bodies, total_time, delta_time, force_law=None):
@@ -65,9 +67,7 @@ def example():
     and starts it
     """
 
-    delta_time = 0.5*(1/24.)#*DAY/YEAR # The time interval to be used in
-    # years (1
-    # hour)
+    delta_time = 0.5*(1/24.) # The time interval to be used in days
     total_time = 0.5*365. # Total time of the Simulation in days
 
     # Define Astronomical bodies. Data taken from:
@@ -81,19 +81,19 @@ def example():
     # Mercury
     mercury = Body(name = 'Mercury', mass = 0.33011 * 10**24/MSUN)
     pos_mercury = np.array([0.387, 0., 0.]) #AU
-    vel_mercury = np.array([0., -47.36 * 1000/AU*DAY, 0.]) #AU/YEAR
+    vel_mercury = np.array([0., -47.36 * 1000/AU*DAY, 0.]) #AU/DAY
     mercury.initiate(pos_mercury, vel_mercury)
 
     #Venus
     venus = Body(name = 'Venus', mass = 4.8685 * 10**24/MSUN)
     pos_venus = np.array([0.723, 0., 0.]) #AU
-    vel_venus = np.array([0.,-35.02 * 1000/AU*DAY, 0.]) #AU/Y
+    vel_venus = np.array([0.,-35.02 * 1000/AU*DAY, 0.]) #AU/DAY
     venus.initiate(pos_venus, vel_venus)
 
     # Earth
     earth = Body(name = 'Earth', mass = MEARTH/MSUN)
     pos_earth = np.array([-1.,0.,0.]) # AU
-    vel_earth = np.array([0.,29.783*1000/AU*DAY,0.])# AU/Y
+    vel_earth = np.array([0.,29.783*1000/AU*DAY,0.])# AU/DAY
     earth.initiate(pos_earth, vel_earth)
 
     #Run the simulation
