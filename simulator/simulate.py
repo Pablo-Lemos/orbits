@@ -72,28 +72,31 @@ def example():
 
     # Define Astronomical bodies. Data taken from:
     # http://nssdc.gsfc.nasa.gov/planetary/factsheet/
+    # Initial conditions taken from Ephymeris data
 
     # Sun
     sun = Body(name = 'Sun', mass = 1.)
     # Start the Sun at the origin with no velocity
+    pos_sun = np.array([ 7.93567917e-03, -6.29360340e-04, -2.31793679e-04])
+    vel_sun = np.array([ 3.56426004e-06,  7.70848450e-06, -1.38462510e-07])
     sun.initiate(pos = np.zeros(3), vel = np.zeros(3))
 
     # Mercury
     mercury = Body(name = 'Mercury', mass = 0.33011 * 10**24/MSUN)
-    pos_mercury = np.array([0.387, 0., 0.]) #AU
-    vel_mercury = np.array([0., -47.36 * 1000/AU*DAY, 0.]) #AU/DAY
+    pos_mercury = np.array([-5.78670715e-02, -4.61182491e-01, -3.17988125e-02]) #AU
+    vel_mercury = np.array([ 2.22124712e-02, -2.53545004e-03, -2.24740703e-03]) #AU/DAY
     mercury.initiate(pos_mercury, vel_mercury)
 
     #Venus
     venus = Body(name = 'Venus', mass = 4.8685 * 10**24/MSUN)
-    pos_venus = np.array([0.723, 0., 0.]) #AU
-    vel_venus = np.array([0.,-35.02 * 1000/AU*DAY, 0.]) #AU/DAY
+    pos_venus = np.array([ 7.25372142e-01,  1.02962658e-01, -4.02455202e-02]) #AU
+    vel_venus = np.array([-2.96452677e-03,  1.99351788e-02,  4.42465220e-04]) #AU/DAY
     venus.initiate(pos_venus, vel_venus)
 
     # Earth
     earth = Body(name = 'Earth', mass = MEARTH/MSUN)
-    pos_earth = np.array([-1.,0.,0.]) # AU
-    vel_earth = np.array([0.,29.783*1000/AU*DAY,0.])# AU/DAY
+    pos_earth = np.array([-2.81758546e-01,  9.39043493e-01, -1.91271807e-04]) # AU
+    vel_earth = np.array([-1.67163499e-02, -5.11906912e-03, -1.03151390e-06])# AU/DAY
     earth.initiate(pos_earth, vel_earth)
 
     #Run the simulation
