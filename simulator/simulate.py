@@ -65,8 +65,10 @@ def example():
     and starts it
     """
 
-    delta_time = (1/24.)*DAY/YEAR # The time interval to be used in years (1 hour)
-    total_time = 1. # Total time of the Simulation in years
+    delta_time = 0.5*(1/24.)#*DAY/YEAR # The time interval to be used in
+    # years (1
+    # hour)
+    total_time = 0.5*365. # Total time of the Simulation in days
 
     # Define Astronomical bodies. Data taken from:
     # http://nssdc.gsfc.nasa.gov/planetary/factsheet/
@@ -103,5 +105,17 @@ if __name__ == '__main__':
     simulation = example()
     # To save this:
     # import pickle
-    file = open('Newton_simulation.pickle', 'wb')
-    pickle.dump(simulation, file)
+    #file = open('Newton_simulation.pickle', 'wb')
+    #pickle.dump(simulation, file)
+
+    import matplotlib.pyplot as plt
+    x = simulation.get_positions()
+    names = simulation.get_names()
+    fig = plt.figure(figsize = (6, 6))
+    for i in range(4):
+        plt.plot(x[:,i,0], x[:,i,1], 'o', label = names[i])
+    plt.legend()
+    plt.xlabel('X [AU]')
+    plt.ylabel('Y [AU]')
+    plt.show()
+
