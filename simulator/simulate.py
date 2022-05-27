@@ -79,7 +79,7 @@ def example():
     # Start the Sun at the origin with no velocity
     pos_sun = np.array([ 7.93567917e-03, -6.29360340e-04, -2.31793679e-04])
     vel_sun = np.array([ 3.56426004e-06,  7.70848450e-06, -1.38462510e-07])
-    sun.initiate(pos = np.zeros(3), vel = np.zeros(3))
+    sun.initiate(pos = pos_sun, vel = vel_sun)
 
     # Mercury
     mercury = Body(name = 'Mercury', mass = 0.33011 * 10**24/MSUN)
