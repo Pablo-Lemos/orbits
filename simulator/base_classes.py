@@ -3,7 +3,7 @@ import types
 import numpy as np
 
 #Define constants
-AU = 149.6e6 * 1000     # Astronomical Unit in meters.
+AU = 149.6e9     # Astronomical Unit in meters.
 DAY = 24*3600. # Day in seconds
 YEAR = 365.25*DAY
 MSUN = 1.98892 * 10**30 # Solar mass

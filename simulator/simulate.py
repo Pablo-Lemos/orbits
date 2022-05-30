@@ -14,12 +14,12 @@ from base_classes import *
 import pickle
 
 #Define constants
-AU = 149.6e6 * 1000     # Astronomical Unit in meters.
+AU = 149.6e9     # Astronomical Unit in meters.
 DAY = 24*3600. # Day in seconds
 YEAR = 365.25*DAY
 MSUN = 1.98892 * 10**30 # Solar mass
 MEARTH = 5.9742 * 10**24 # Earth mass
-G = 6.67428e-11/AU**3*MSUN*DAY**2 # The gravitational constant G in AU**3 /MSUN/ YEAR^2
+G = 6.67428e-11/AU**3*MSUN*DAY**2 # The gravitational constant G in AU**3 /MSUN/ Day^2
 
 
 def simulate(bodies, total_time, delta_time, force_law=None):
@@ -65,39 +65,41 @@ def example():
     and starts it
     """
 
-    delta_time = (1/24.)*DAY/YEAR # The time interval to be used in years (1 hour)
-    total_time = 1. # Total time of the Simulation in years
+    delta_time = 3*(24/24.) # The time interval to be used in Days
+    total_time = 1000*88. # Total time of the Simulation in Days
 
     # Define Astronomical bodies. Data taken from:
     # http://nssdc.gsfc.nasa.gov/planetary/factsheet/
 
     # Sun
-    sun = Body(name = 'Sun', mass = 1.)
+    sun = Body(name='Sun', mass=1.)
     # Start the Sun at the origin with no velocity
-    sun.initiate(pos = np.zeros(3), vel = np.zeros(3))
+    pos_sun = np.array([7.93567917e-03, -6.29360340e-04, -2.31793679e-04])
+    vel_sun = np.array([3.56426004e-06, 7.70848450e-06, -1.38462510e-07])
+    sun.initiate(pos=pos_sun, vel=vel_sun)
 
     # Mercury
-    mercury = Body(name = 'Mercury', mass = 0.33011 * 10**24/MSUN)
-    pos_mercury = np.array([0.387, 0., 0.]) #AU
-    vel_mercury = np.array([0., -47.36 * 1000/AU*DAY, 0.]) #AU/YEAR
+    mercury = Body(name='Mercury', mass=0.33011 * 10 ** 24 / MSUN)
+    pos_mercury = np.array([-5.78670715e-02, -4.61182491e-01, -3.17988125e-02])  # AU
+    vel_mercury = np.array([2.22124712e-02, -2.53545004e-03, -2.24740703e-03])  # AU/DAY
     mercury.initiate(pos_mercury, vel_mercury)
 
-    #Venus
-    """venus = Body(name = 'Venus', mass = 4.8685 * 10**24/MSUN)
-    pos_venus = np.array([0.723, 0., 0.]) #AU
-    vel_venus = np.array([0.,-35.02 * 1000/AU*DAY, 0.]) #AU/Y
+    # Venus
+    venus = Body(name='Venus', mass=4.8685 * 10 ** 24 / MSUN)
+    pos_venus = np.array([7.25372142e-01, 1.02962658e-01, -4.02455202e-02])  # AU
+    vel_venus = np.array([-2.96452677e-03, 1.99351788e-02, 4.42465220e-04])  # AU/DAY
     venus.initiate(pos_venus, vel_venus)
 
     # Earth
-    earth = Body(name = 'Earth', mass = MEARTH/MSUN)
-    pos_earth = np.array([-1.,0.,0.]) # AU
-    vel_earth = np.array([0.,29.783*1000/AU*DAY,0.])# AU/Y
-    earth.initiate(pos_earth, vel_earth)"""
+    earth = Body(name='Earth', mass=MEARTH / MSUN)
+    pos_earth = np.array([-2.81758546e-01, 9.39043493e-01, -1.91271807e-04])  # AU
+    vel_earth = np.array([-1.67163499e-02, -5.11906912e-03, -1.03151390e-06])  # AU/DAY
+    earth.initiate(pos_earth, vel_earth)
 
     #Run the simulation
-    simulate([sun, mercury], total_time, delta_time)
+    simulate([sun, mercury, venus, earth], total_time, delta_time)
 
-    return StarSystem([sun, mercury])
+    return StarSystem([sun, mercury, venus, earth])
 
 if __name__ == '__main__':
     simulation = example()

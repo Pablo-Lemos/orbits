@@ -3,13 +3,13 @@ import types
 import numpy as np
 
 #Define constants
-AU = 149.6e6 * 1000     # Astronomical Unit in meters.
+AU = 149.6e9    # Astronomical Unit in meters.
 DAY = 24*3600. # Day in seconds
 YEAR = 365.25*DAY
 MSUN = 1.98892 * 10**30 # Solar mass
 MEARTH = 5.9742 * 10**24 # Earth mass
-G = 6.67428e-11/AU**3*MSUN*DAY**2 # The gravitational constant G in AU**3 /MSUN/ YEAR^2
-c = 2.99792458 * 10**8 / AU*DAY #speed of light in AU/Day
+G = 6.67428e-11/AU**3*MSUN*DAY**2 # The gravitational constant G in AU**3 /MSUN/ Day^2
+c = (2.99792458 * 10**8) * DAY / AU #speed of light in AU/Day
 
 def random_two_vector():
     """
@@ -54,8 +54,12 @@ def GR_correctoin (m1, m2, distance, velocity):
 
     """
     dist_norm = np.sum(distance ** 2.) ** 0.5
-    beta = velocity / c
-    return (G * m1 * m2 * distance / dist_norm ** 3.) * (1 + (3 * (beta**2)))
+    velocity_norm = np.sum(velocity ** 2) ** 0.5
+    beta = velocity_norm / c
+    L = m1 * velocity_norm * dist_norm
+    original = (G * m1 * m2 * distance / dist_norm ** 3.) * (1 + 50 * (3 * beta ** 2))
+    angular = (G * m1 * m2 * distance / dist_norm ** 3.) * (1 + (3 * L**2)/(c**2 * dist_norm ** 2))
+    return original
 
 
 class Body(object):
