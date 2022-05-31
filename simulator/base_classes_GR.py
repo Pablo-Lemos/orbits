@@ -56,7 +56,7 @@ def GR_correctoin (m1, m2, distance, velocity):
     dist_norm = np.sum(distance ** 2.) ** 0.5
     velocity_norm = np.sum(velocity ** 2) ** 0.5
     beta = velocity_norm / c
-    L = m1 * np.cross(velocity, distance)
+    L = m1 * velocity_norm * dist_norm
     original = (G * m1 * m2 * distance / dist_norm ** 3.) * (1 + (3 * beta ** 2))
     angular = (G * m1 * m2 * distance / dist_norm ** 3.) * (1 + (3 * L**2)/(c**2 * dist_norm ** 2))
     return angular
