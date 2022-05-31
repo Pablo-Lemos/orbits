@@ -65,7 +65,7 @@ def example():
     and starts it
     """
 
-    delta_time = 3*(24/24.) # The time interval to be used in Days
+    delta_time = 2*(24/24.) # The time interval to be used in Days
     total_time = 1000*88. # Total time of the Simulation in Days
 
     # Define Astronomical bodies. Data taken from:

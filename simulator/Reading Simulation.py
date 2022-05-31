@@ -13,12 +13,14 @@ x_GR = GR_system.get_positions()
 x_N = N_system.get_positions()
 names = GR_system.get_names()
 
-#fig = plt.figure(figsize=(6, 6))
+fig = plt.figure(figsize=(7, 7))
 delta_x = x_GR[:, 1, 0] - x_N[:, 1, 0]
 delta_y = x_GR[:, 1, 1] - x_N[:, 1, 1]
-for i in range(4):
-    plt.plot(x_GR[-30:, i, 0], x_GR[-30:, i, 1], label=f'{names[i]} GR')
-    plt.plot(x_N[-30:, i, 0], x_N[-30:, i, 1], label=f'{names[i]} N')
+for i in range(2):
+    plt.plot(x_GR[:45, i, 0], x_GR[:45, i, 1], label=f'{names[i]} GR 1st')
+    plt.plot(x_N[:45, i, 0], x_N[:45, i, 1], label=f'{names[i]} N 1st')
+    plt.plot(x_GR[-45:, i, 0], x_GR[-45:, i, 1], label=f'{names[i]} GR')
+    plt.plot(x_N[-45:, i, 0], x_N[-45:, i, 1], label=f'{names[i]} N')
 #time = np.arange(len(delta_x))
 #plt.plot(time, delta_x)
 plt.legend()
