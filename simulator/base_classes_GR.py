@@ -47,19 +47,19 @@ def GR_correctoin (m1, m2, distance, velocity):
     Args:
         m1: mass of first body
         m2: mass of second body
-        distance: 
-        velocity: 
+        distance: three dimensional distance array
+        velocity: three dimensional velocity array
 
     Returns: A numpy array with the three force correction components
 
     """
     dist_norm = np.sum(distance ** 2.) ** 0.5
     velocity_norm = np.sum(velocity ** 2) ** 0.5
-    beta = velocity_norm / c
-    L = m1 * velocity_norm * dist_norm
-    original = (G * m1 * m2 * distance / dist_norm ** 3.) * (1 + (3 * beta ** 2))
-    angular = (G * m1 * m2 * distance / dist_norm ** 3.) * (1 + (3 * L**2)/(c**2 * dist_norm ** 2))
-    return angular
+    beta = velocity_norm / c # total beta factor
+    L = np.sum((np.cross(velocity, distance))**2)**0.5 #total angular momentum per unit mass normalised
+    beta_version = (G * m1 * m2 * distance / dist_norm ** 3.) * (1 + (3 * beta ** 2))
+    angular_version = (G * m1 * m2 * distance / dist_norm ** 3.) * (1 + (3 * L**2)/(c**2 * dist_norm ** 2))
+    return angular_version
 
 
 class Body(object):

@@ -13,18 +13,21 @@ x_GR = GR_system.get_positions()
 x_N = N_system.get_positions()
 names = GR_system.get_names()
 
-fig = plt.figure(figsize=(7, 7))
+fig = plt.figure(figsize=(8, 8))
 delta_x = x_GR[:, 1, 0] - x_N[:, 1, 0]
 delta_y = x_GR[:, 1, 1] - x_N[:, 1, 1]
-#for i in range(2):
-    #plt.plot(x_GR[:46, i, 0], x_GR[:46, i, 1], label=f'{names[i]} GR 1st')
-    #plt.plot(x_N[:46, i, 0], x_N[:46, i, 1], label=f'{names[i]} N 1st')
-    #plt.plot(x_GR[-45:, i, 0], x_GR[-45:, i, 1], label=f'{names[i]} GR')
-    #plt.plot(x_N[-45:, i, 0], x_N[-45:, i, 1], label=f'{names[i]} N')
-time = np.arange(len(delta_x))
-plt.plot(time, delta_x)
+for i in range(2):
+    plt.plot(x_GR[:46, i, 0], x_GR[:46, i, 1], label=f'{names[i]} GR 1st period')
+    plt.plot(x_N[:46, i, 0], x_N[:46, i, 1], label=f'{names[i]} N 1st period')
+    #plt.plot(x_GR[23000:23046, i, 0], x_GR[23000:23046, i, 1], label=f'{names[i]} GR middle period')
+    #plt.plot(x_N[23000:23046, i, 0], x_N[23000:23046, i, 1], label=f'{names[i]} N middle period')
+    plt.plot(x_GR[-45:, i, 0], x_GR[-45:, i, 1], label=f'{names[i]} GR 1000th Period')
+    plt.plot(x_N[-45:, i, 0], x_N[-45:, i, 1], label=f'{names[i]} N 1000th period')
+#time = np.arange(len(delta_x))
+#plt.plot(time, delta_y, label= 'Time vs Delta Y (GR-N)')
 plt.legend()
 plt.xlabel('X [AU]')
+#plt.xlabel('Time [arbitrary units]')
 plt.ylabel('Y [AU]')
 plt.show()
 
