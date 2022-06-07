@@ -14,15 +14,28 @@ x_N = N_system.get_positions()
 names = GR_system.get_names()
 
 fig = plt.figure(figsize=(8, 8))
+
 delta_x = x_GR[:, 1, 0] - x_N[:, 1, 0]
 delta_y = x_GR[:, 1, 1] - x_N[:, 1, 1]
-for i in range(2):
-    plt.plot(x_GR[:46, i, 0], x_GR[:46, i, 1], label=f'{names[i]} GR 1st period')
-    plt.plot(x_N[:46, i, 0], x_N[:46, i, 1], label=f'{names[i]} N 1st period')
+
+GR_sun = x_GR[:, 0, :] - x_GR[:, 0, :]
+GR_mercury = x_GR[:, 1, :] - x_GR[:, 0, :]
+N_mercury = x_N[:, 1, :] - x_N[:, 0, :]
+
+plt.plot(GR_sun[:46, 0], GR_sun[:46, 1], 'yo', label='Sun')
+plt.plot(GR_mercury[:46, 0], GR_mercury[:46, 1], label='GR Mercury 1st period')
+plt.plot(GR_mercury[-45:, 0], GR_mercury[-45:, 1], label='GR Mercury 1000th period')
+plt.plot(N_mercury[:46, 0], N_mercury[:46, 1], label='N Mercury 1st period')
+plt.plot(N_mercury[-45:, 0], N_mercury[-45:, 1], label='N Mercury 1000th period')
+plt.title('Mercury\'s Orbit using netoninan and GR (Beta equation)')
+
+#for i in range(2):
+    #plt.plot(x_GR[:46, i, 0], x_GR[:46, i, 1], label=f'{names[i]} GR 1st period')
+    #plt.plot(x_N[:46, i, 0], x_N[:46, i, 1], label=f'{names[i]} N 1st period')
     #plt.plot(x_GR[23000:23046, i, 0], x_GR[23000:23046, i, 1], label=f'{names[i]} GR middle period')
     #plt.plot(x_N[23000:23046, i, 0], x_N[23000:23046, i, 1], label=f'{names[i]} N middle period')
-    plt.plot(x_GR[-45:, i, 0], x_GR[-45:, i, 1], label=f'{names[i]} GR 1000th Period')
-    plt.plot(x_N[-45:, i, 0], x_N[-45:, i, 1], label=f'{names[i]} N 1000th period')
+    #plt.plot(x_GR[-45:, i, 0], x_GR[-45:, i, 1], label=f'{names[i]} GR 1000th Period')
+    #plt.plot(x_N[-45:, i, 0], x_N[-45:, i, 1], label=f'{names[i]} N 1000th period')
 #time = np.arange(len(delta_x))
 #plt.plot(time, delta_y, label= 'Time vs Delta Y (GR-N)')
 plt.legend()
