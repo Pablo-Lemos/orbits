@@ -22,7 +22,7 @@ MEARTH = 5.9742 * 10**24 # Earth mass
 G = 6.67428e-11/AU**3*MSUN*DAY**2 # The gravitational constant G in AU**3 /MSUN/ Day^2
 
 
-def simulate_GR(bodies, total_time, delta_time, force_law=None):
+def simulate(bodies, total_time, delta_time, force_law):
     """
     Simulates the orbits for a certain period of time, and stores the results
     as a panda array.
@@ -59,7 +59,7 @@ def simulate_GR(bodies, total_time, delta_time, force_law=None):
 
         time += delta_time  # Update total time
 
-def example():
+def example(force_law):
     """
     The main function. Defines the bodies and parameters to be used in the simulation,
     and starts it
@@ -97,13 +97,25 @@ def example():
     earth.initiate(pos_earth, vel_earth)
 
     #Run the simulation
-    simulate_GR([sun, mercury, venus, earth], total_time, delta_time)
+    simulate([sun, mercury, venus, earth], total_time, delta_time, force_law=force_law)
 
     return StarSystem([sun, mercury, venus, earth])
 
 if __name__ == '__main__':
-    simulation_GR = example()
+    #GR
+    print("Running GR Simulation...")
+    simulation_GR = example(force_law='GR')
+    print("GR Simulation is complete")
     # To save this:
-    # import pickle
     file = open('GR_simulation.pickle', 'wb')
     pickle.dump(simulation_GR, file)
+    print("GR Simulation saved")
+
+    #N
+    print("Running Newtonian Simulation...")
+    simulation_N = example(force_law='N')
+    print("Newtonian Simulation is complete")
+    # To save this:
+    file = open('Newton_simulation.pickle', 'wb')
+    pickle.dump(simulation_N, file)
+    print("Newtonian Simulation saved")

@@ -150,13 +150,21 @@ class Body(object):
         distance = other.get_current_position() - self._currPos
         velocity = self.get_current_velocity()
 
-        if force_law is None:
+        if force_law == 'GR':
             force_law = GR_correctoin
-        assert hasattr(force_law, '__call__')
-        assert force_law.__code__.co_argcount == 4, "Force law must have 4 " \
-                                                    "arguments: m1, m2, x, v"
+            self._currAcc += force_law(self._mass, other.get_mass(), distance, velocity) / self._mass
+        #assert hasattr(force_law, '__call__')
+        #assert force_law.__code__.co_argcount == 4, "Force law must have 4 " \
+                                                    #"arguments: m1, m2, x, v"
 
-        self._currAcc += force_law(self._mass, other.get_mass(), distance, velocity) / self._mass
+
+        if force_law =='N':
+            force_law = force_newton
+            self._currAcc += force_law(self._mass, other.get_mass(), distance) / self._mass
+       # assert hasattr(force_law, '__call__')
+        #assert force_law.__code__.co_argcount == 3, "Force law must have 3 " \
+                                                   # "arguments: m1, m2, x"
+
 
 
     def update(self, delta_time):
