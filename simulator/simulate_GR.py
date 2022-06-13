@@ -96,10 +96,16 @@ def example(force_law):
     vel_earth = np.array([-1.67163499e-02, -5.11906912e-03, -1.03151390e-06])  # AU/DAY
     earth.initiate(pos_earth, vel_earth)
 
-    #Run the simulation
-    simulate([sun, mercury, venus, earth], total_time, delta_time, force_law=force_law)
+    # Jupiter
+    jupiter = Body(name='Jupiter', mass=1.898 * 10 ** 27 / MSUN)
+    pos_jupiter = 5.203736631  # AU
+    vel_jupiter = 7.50802139e-03  # AU/DAY
+    jupiter.initiate(pos_jupiter, vel_jupiter)
 
-    return StarSystem([sun, mercury, venus, earth])
+    #Run the simulation
+    simulate([sun, mercury, venus, earth, jupiter], total_time, delta_time, force_law=force_law)
+
+    return StarSystem([sun, mercury, venus, earth, jupiter])
 
 if __name__ == '__main__':
     #GR

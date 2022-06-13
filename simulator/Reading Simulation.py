@@ -10,6 +10,7 @@ GR_system = pickle.load(GR_file)
 N_file = open('Newton_simulation.pickle', 'rb')
 N_system = pickle.load(N_file)
 
+# Extract the position, velocity, and names
 x_GR = GR_system.get_positions()
 x_N = N_system.get_positions()
 names = GR_system.get_names()
@@ -24,6 +25,7 @@ GR_sun = x_GR[:, 0, :] - x_GR[:, 0, :]
 GR_mercury = x_GR[:, 1, :] - x_GR[:, 0, :]
 N_mercury = x_N[:, 1, :] - x_N[:, 0, :]
 
+'''
 ax = plt.axes(projection='3d')
 ax.plot3D(GR_sun[:46, 0], GR_sun[:46, 1], GR_sun[:46, 2], 'yo', label='Sun')
 ax.plot3D(GR_mercury[:46, 0], GR_mercury[:46, 1], GR_mercury[:46, 2], label='GR Mercury 1st period')
@@ -33,21 +35,30 @@ ax.plot3D(N_mercury[-45:, 0], N_mercury[-45:, 1], N_mercury[-45:, 2], label='N M
 
 #ax.title('Mercury\'s Orbit using newtoninan and GR (Beta equation)')
 
-#for i in range(2):
-    #plt.plot(x_GR[:46, i, 0], x_GR[:46, i, 1], label=f'{names[i]} GR 1st period')
-    #plt.plot(x_N[:46, i, 0], x_N[:46, i, 1], label=f'{names[i]} N 1st period')
+'''
+'''
+for i in range(2):
+    plt.plot(x_GR[:46, i, 0], x_GR[:46, i, 1], label=f'{names[i]} GR 1st period')
+    plt.plot(x_N[:46, i, 0], x_N[:46, i, 1], label=f'{names[i]} N 1st period')
     #plt.plot(x_GR[23000:23046, i, 0], x_GR[23000:23046, i, 1], label=f'{names[i]} GR middle period')
     #plt.plot(x_N[23000:23046, i, 0], x_N[23000:23046, i, 1], label=f'{names[i]} N middle period')
-    #plt.plot(x_GR[-45:, i, 0], x_GR[-45:, i, 1], label=f'{names[i]} GR 1000th Period')
-    #plt.plot(x_N[-45:, i, 0], x_N[-45:, i, 1], label=f'{names[i]} N 1000th period')
-
+    plt.plot(x_GR[-45:, i, 0], x_GR[-45:, i, 1], label=f'{names[i]} GR 1000th Period')
+    plt.plot(x_N[-45:, i, 0], x_N[-45:, i, 1], label=f'{names[i]} N 1000th period')
+'''
 #plt.plot(time, delta_y, label= 'Time vs Delta Y (GR-N)')
+
+plt.plot(GR_sun[:46, 0], GR_sun[:46, 1], 'yo', label=f'SUN GR 1st period')
+plt.plot(GR_mercury[:46, 0], GR_mercury[:46, 1], label=f'Mercury GR 1st period')
+plt.plot(N_mercury[:46, 0], N_mercury[:46, 1], label=f'Mercury N 1st period')
+plt.plot(GR_mercury[-45:, 0], GR_mercury[-45:, 1], label=f'Mercury GR 1000th period')
+plt.plot(N_mercury[-45:, 0], N_mercury[-45:, 1], label=f'Mercury N 1000th period')
+
 
 plt.legend()
 plt.xlabel('X [AU]')
 #plt.xlabel('Time [arbitrary units]')
 plt.ylabel('Y [AU]')
-ax.set_zlabel('Z [AU]')
+#ax.set_zlabel('Z [AU]')
 plt.show()
 
 
@@ -58,12 +69,6 @@ GR_v = GR_system.get_velocities()
 N_positions = N_system.get_positions()
 N_v = N_system.get_velocities()'''
 
-'''print('GR POSITIONS: ')
-print(GR_x)
-print('N POSITIONS: ')
-print(N_x)
-print('Difference: ')
-print(GR_x - N_x)'''
 
 """
 GR_positions_mercury = GR_positions[:, 1]

@@ -21,10 +21,10 @@ def random_two_vector():
         Coordinates of the unitary vector (x^2 + y^2 = 1)
 
     """
-    phi = np.random.uniform(0,np.pi*2)
+    phi = np.random.uniform(0, np.pi*2)
     x = np.cos(phi)
     y = np.sin(phi)
-    return np.array([x,y])
+    return np.array([x, y])
 
 
 def force_newton(m1, m2, distance):
