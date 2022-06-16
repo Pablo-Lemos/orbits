@@ -42,16 +42,17 @@ for i in range(2):
     plt.plot(x_N[:46, i, 0], x_N[:46, i, 1], label=f'{names[i]} N 1st period')
     #plt.plot(x_GR[23000:23046, i, 0], x_GR[23000:23046, i, 1], label=f'{names[i]} GR middle period')
     #plt.plot(x_N[23000:23046, i, 0], x_N[23000:23046, i, 1], label=f'{names[i]} N middle period')
-    plt.plot(x_GR[-45:, i, 0], x_GR[-45:, i, 1], label=f'{names[i]} GR 1000th Period')
-    plt.plot(x_N[-45:, i, 0], x_N[-45:, i, 1], label=f'{names[i]} N 1000th period')
+    #plt.plot(x_GR[-45:, i, 0], x_GR[-45:, i, 1], label=f'{names[i]} GR 1000th Period')
+    #plt.plot(x_N[-45:, i, 0], x_N[-45:, i, 1], label=f'{names[i]} N 1000th period')
 '''
 #plt.plot(time, delta_y, label= 'Time vs Delta Y (GR-N)')
 
-plt.plot(GR_sun[:46, 0], GR_sun[:46, 1], 'yo', label=f'SUN GR 1st period')
-plt.plot(GR_mercury[:46, 0], GR_mercury[:46, 1], label=f'Mercury GR 1st period')
-plt.plot(N_mercury[:46, 0], N_mercury[:46, 1], label=f'Mercury N 1st period')
-plt.plot(GR_mercury[-45:, 0], GR_mercury[-45:, 1], label=f'Mercury GR 1000th period')
-plt.plot(N_mercury[-45:, 0], N_mercury[-45:, 1], label=f'Mercury N 1000th period')
+plt.plot(GR_sun[:382, 0], GR_sun[:382, 1], 'yo', label=f'SUN')
+plt.plot(GR_mercury[:382, 0], GR_mercury[:382, 1], label=f'Mercury GR')
+plt.plot(N_mercury[:382, 0], N_mercury[:382, 1], label=f'Mercury N')
+#plt.plot(GR_mercury[-45:, 0], GR_mercury[-45:, 1], label=f'Mercury GR 1000th period')
+#plt.plot(N_mercury[-45:, 0], N_mercury[-45:, 1], label=f'Mercury N 1000th period')
+
 
 
 plt.legend()

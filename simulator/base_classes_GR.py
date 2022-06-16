@@ -56,10 +56,10 @@ def GR_correctoin (m1, m2, distance, velocity):
     dist_norm = np.sum(distance ** 2.) ** 0.5
     velocity_norm = np.sum(velocity ** 2) ** 0.5
     beta = velocity_norm / c # total beta factor
-    L = np.sum((np.cross(velocity, distance))**2)**0.5 #total angular momentum per unit mass normalised
+    L = (np.sum((np.cross(velocity, distance))**2))**0.5 #total angular momentum per unit mass normalised
     beta_version = (G * m1 * m2 * distance / dist_norm ** 3.) * (1 + (3 * beta ** 2))
     angular_version = (G * m1 * m2 * distance / dist_norm ** 3.) * (1 + (3 * L**2)/(c**2 * dist_norm ** 2))
-    return beta_version
+    return angular_version
 
 
 class Body(object):
