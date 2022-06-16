@@ -27,14 +27,14 @@ N_mercury = x_N[:, 1, :] - x_N[:, 0, :]
 
 '''
 ax = plt.axes(projection='3d')
-ax.plot3D(GR_sun[:46, 0], GR_sun[:46, 1], GR_sun[:46, 2], 'yo', label='Sun')
-ax.plot3D(GR_mercury[:46, 0], GR_mercury[:46, 1], GR_mercury[:46, 2], label='GR Mercury 1st period')
-ax.plot3D(N_mercury[:46, 0], N_mercury[:46, 1], N_mercury[:46, 2], label='N Mercury 1st period')
-ax.plot3D(GR_mercury[-45:, 0], GR_mercury[-45:, 1], GR_mercury[-45:, 2], label='GR Mercury 1000th period')
-ax.plot3D(N_mercury[-45:, 0], N_mercury[-45:, 1], N_mercury[-45:, 2], label='N Mercury 1000th period')
+ax.plot3D(GR_sun[:90, 0], GR_sun[:90, 1], GR_sun[:90, 2], 'yo', label='Sun')
+ax.plot3D(GR_mercury[:90, 0], GR_mercury[:90, 1], GR_mercury[:90, 2], label='GR Mercury 1st period')
+ax.plot3D(N_mercury[:90, 0], N_mercury[:90, 1], N_mercury[:90, 2], label='N Mercury 1st period')
+ax.plot3D(GR_mercury[-88:, 0], GR_mercury[-88:, 1], GR_mercury[-88:, 2], label='GR Mercury 1000th period')
+ax.plot3D(N_mercury[-88:, 0], N_mercury[-88:, 1], N_mercury[-88:, 2], label='N Mercury 1000th period')
 
 #ax.title('Mercury\'s Orbit using newtoninan and GR (Beta equation)')
-
+ax.set_zlabel('Z [AU]')
 '''
 '''
 for i in range(2):
@@ -47,19 +47,21 @@ for i in range(2):
 '''
 #plt.plot(time, delta_y, label= 'Time vs Delta Y (GR-N)')
 
-plt.plot(GR_sun[:382, 0], GR_sun[:382, 1], 'yo', label=f'SUN')
-plt.plot(GR_mercury[:382, 0], GR_mercury[:382, 1], label=f'Mercury GR')
-plt.plot(N_mercury[:382, 0], N_mercury[:382, 1], label=f'Mercury N')
-#plt.plot(GR_mercury[-45:, 0], GR_mercury[-45:, 1], label=f'Mercury GR 1000th period')
-#plt.plot(N_mercury[-45:, 0], N_mercury[-45:, 1], label=f'Mercury N 1000th period')
-
+'''
+plt.plot(GR_sun[:90, 0], GR_sun[:90, 1], 'yo', label=f'SUN')
+plt.plot(GR_mercury[:1800, 0], GR_mercury[:1800, 1], label=f'Mercury GR')
+plt.plot(N_mercury[:1800, 0], N_mercury[:1800, 1], color='orange',  label=f'Mercury N')
+#plt.plot(GR_mercury[-90:, 0], GR_mercury[-90:, 1], label=f'Mercury GR 1000th period')
+#plt.plot(N_mercury[-89:, 0], N_mercury[-89:, 1], label=f'Mercury N 1000th period')
+'''
 
 
 plt.legend()
 plt.xlabel('X [AU]')
 #plt.xlabel('Time [arbitrary units]')
 plt.ylabel('Y [AU]')
-#ax.set_zlabel('Z [AU]')
+
+#plt.title('Mercury\'s orbit for 20 earth years using N')
 plt.show()
 
 

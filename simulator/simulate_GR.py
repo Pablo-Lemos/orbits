@@ -65,8 +65,8 @@ def example(force_law):
     and starts it
     """
 
-    delta_time = 2*(24/24.) # The time interval to be used in Days
-    total_time = 1000*88. # Total time of the Simulation in Days
+    delta_time = 1*(24/24.) # The time interval to be used in Days
+    total_time = 500*88. # Total time of the Simulation in Days
 
     # Define Astronomical bodies. Data taken from:
     # http://nssdc.gsfc.nasa.gov/planetary/factsheet/
@@ -105,7 +105,7 @@ def example(force_law):
     '''
 
     #Run the simulation
-    simulate([sun, mercury, venus, earth], total_time, delta_time, force_law=force_law)
+    simulate([sun, mercury, venus, earth], total_time, delta_time, force_law=force_law.upper())
 
     return StarSystem([sun, mercury, venus, earth])
 
@@ -119,6 +119,7 @@ if __name__ == '__main__':
     pickle.dump(simulation_GR, file)
     print("GR Simulation saved")
 
+    '''
     #N
     print("Running Newtonian Simulation...")
     simulation_N = example(force_law='N')
@@ -127,3 +128,4 @@ if __name__ == '__main__':
     file = open('Newton_simulation.pickle', 'wb')
     pickle.dump(simulation_N, file)
     print("Newtonian Simulation saved")
+    '''
