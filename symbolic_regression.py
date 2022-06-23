@@ -4,6 +4,7 @@ from helper_functions import cartesian_to_spherical_coordinates
 import tensorflow as tf
 import numpy as np
 from pysr import PySRRegressor
+import os
 
 # Training variables
 num_time_steps_tr = 512000  # Number of time steps for training (~27 years).
@@ -87,7 +88,7 @@ def format_data_symreg(data_tr, data_symreg, system):
     return D_symreg, F_symreg, norm_layer, senders, receivers
 
 
-def run_symbolic_regression(D, model, system, num_pts=1000):
+def run_symbolic_regression(D, model, system, num_pts=1000, name='eqns'):
     D_tf = tf.convert_to_tensor(D.reshape(-1, 3), dtype="float32")
     _, F = model.call(D_tf, extract=True)
 
@@ -124,15 +125,25 @@ def run_symbolic_regression(D, model, system, num_pts=1000):
     X = X[idx]
     y = y[idx]
 
-    kwargs = dict(populations=64, binary_operators="+ * - /".split(" "),
-              unary_operators=[], temp_equation_file=True,
-              progress=False, procs=4, annealing=False, maxsize=40, useFrequency=True,
-              variable_names = ['m0', 'm1', 'x', 'y', 'z', 'r'],
-              optimizer_algorithm="BFGS",
-              optimizer_iterations=10,
-              optimize_probability=1.0,)
-    #equations= pysr(X, y, **kwargs)
-    pysr_model = PySRRegressor(**kwargs)
+
+    pysr_model = PySRRegressor(populations=64,
+                               binary_operators=["plus", "sub", "mult",
+                                                 "pow", "div"],
+                               unary_operators=["neg", "exp", "log_abs",
+                                                "sin", "cos"],
+                               temp_equation_file=False,
+                               equation_file=os.path.join(
+                                   "./data/saved_equations/", name),
+                               progress=False,
+                               procs=4,
+                               annealing=False,
+                               maxsize=40,
+                               useFrequency=True,
+                               variable_names = ['m0', 'm1', 'x', 'y', 'z', 'r'],
+                               optimizer_algorithm="BFGS",
+                               optimizer_iterations=10,
+                               optimize_probability=1.0
+                               )
     pysr_model.fit(X, y)
     return pysr_model
 
@@ -151,6 +162,7 @@ if __name__ == "__main__":
     model = load_model(system, norm_layer, senders, receivers)
     print('Model loading completed')
 
-    equations = run_symbolic_regression(D_symreg, model, system)
+    equations = run_symbolic_regression(D_symreg, model, system,
+                                        name="planetsonly")
 
 
