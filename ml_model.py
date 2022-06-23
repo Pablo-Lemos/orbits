@@ -75,8 +75,8 @@ class LearnForces(tf.keras.Model):
         self.nplanets = nplanets
         self.nedges = nplanets*(nplanets-1)//2
 
-        self.opt1 = tf.keras.optimizers.Adam(learning_rate=5e-2)
-        self.opt2 = tf.keras.optimizers.Adam(learning_rate=1e-3)
+        self.opt_gnn = tf.keras.optimizers.Adam(learning_rate=1e-3)
+        self.opt_masses = tf.keras.optimizers.Adam(learning_rate=1e-1)
         #self.test_loss_metric = tf.keras.metrics.MeanAbsoluteError(name='test_loss')
         
         logm_init = tf.random_normal_initializer(mean=0.0, stddev=1.0)
@@ -214,20 +214,26 @@ class LearnForces(tf.keras.Model):
         #gradients, _ = tf.clip_by_global_norm(gradients, 5.0)
         # Update weights
         #self.optimizer.apply_gradients(zip(gradients,trainable_vars))
+        #gradients = tape.gradient(loss, self.trainable_variables)
+        #gradients, _ = tf.clip_by_global_norm(gradients, 5.0)
+        #gradients = [tf.clip_by_value(i, -5, 5) for i in gradients]
+        # Update weights
+        #self.optimizer.apply_gradients(zip(gradients,self.trainable_variables))
+
+        var_list = self.trainable_variables
+        grads = tape.gradient(loss, var_list)
 
 
-        var_list1 = self.trainable_variables
-        var_list2 = list(self.graph_network.trainable_variables)
-        gradients = tape.gradient(loss, var_list1 + var_list2)
-        grads1 = gradients[:len(var_list1)]
-        grads2 = gradients[len(var_list1):]
-        #grads1, _ = tf.clip_by_global_norm(grads1, 5.0)
-        #grads2, _ = tf.clip_by_global_norm(grads2, 5.0)
-        #grads1 = [tf.clip_by_value(i, -5, 5) for i in grads1]
-        #grads2 = [tf.clip_by_value(i, -5, 5) for i in grads2]
-        train_op1 = self.opt1.apply_gradients(zip(grads1, var_list1))
-        train_op2 = self.opt2.apply_gradients(zip(grads2, var_list2)) 
-        train_op = tf.group(train_op1, train_op2)        
+        train_op_gnn = self.opt_gnn.apply_gradients(zip(grads[:-1], var_list[:-1]))
+        train_op_masses = self.opt_masses.apply_gradients(zip(grads[-1:], var_list[-1:]))
+        #var_list1 = self.trainable_variables
+        #var_list2 = list(self.graph_network.trainable_variables)
+        #gradients = tape.gradient(loss, var_list1 + var_list2)
+        #grads1 = gradients[:len(var_list1)]
+        #grads2 = gradients[len(var_list1):]
+        #train_op1 = self.opt1.apply_gradients(zip(grads1, var_list1))
+        #train_op2 = self.opt2.apply_gradients(zip(grads2, var_list2)) 
+        #train_op = tf.group(train_op1, train_op2)        
         
         loss_tracker.update_state(loss)
         return {"loss": loss_tracker.result()}

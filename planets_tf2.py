@@ -25,7 +25,7 @@ G = 6.67428e-11/AU**3*MSUN*DAY**2 # Change units of G to AU^3 MSun^{-1} Day^{-2}
 patience = 20 # For early stopping
 noise_level = 0.01 # Standard deviation of Gaussian noise for randomly perturbing input data
 num_epochs = 1000 # Number of training epochs. Set to large number
-num_time_steps_tr = 130000  # Number of time steps for training (~27 years).
+num_time_steps_tr = 512000  # Number of time steps for training (~27 years).
 # One time step is 30 minutes
 # An orbit for saturn is 129110 steps
 num_time_steps_val = 10000 # Using few to speed up calculations
@@ -42,7 +42,8 @@ def read_data(num_time_steps_tr, num_time_steps_val):
 
     # Read the file
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    filename = os.path.join(dir_path, 'data/solar_system_data.pkl')
+    #filename = os.path.join(dir_path, 'data/solar_system_data.pkl')
+    filename = os.path.join(dir_path, 'data/planetsonly.pkl')
     filehandler = open(filename, 'rb')
     system = pickle.load(filehandler)
 
@@ -153,7 +154,7 @@ def main(system, train_ds, test_ds, norm_layer, senders, receivers):
                                                       restore_best_weights=False)
 
     # Restore best weights not working, but found way around using checkpoint
-    checkpoint_filepath = './saved_models/orbits'
+    checkpoint_filepath = './saved_models/planetsonly_i3'
 
     checkpoint = tf.keras.callbacks.ModelCheckpoint(
         filepath=checkpoint_filepath,
@@ -182,7 +183,7 @@ def main(system, train_ds, test_ds, norm_layer, senders, receivers):
 
 
 if __name__ == "__main__":
-    tf.config.list_physical_devices('CPU')
+    #tf.config.list_physical_devices('CPU')
     tf.config.run_functions_eagerly(False)
 
     data_tr, data_val, system = read_data(num_time_steps_tr, num_time_steps_val)
@@ -193,11 +194,8 @@ if __name__ == "__main__":
     print('Model training completed')
 
     print ('Learned planetary masses:')
-    print(np.round(model.logm_planets.numpy(), 2))
-
-    print ('True planetary masses:')
-    print(np.round(np.log10(masses)[1:], 2))
-
+    for mass, true_mass, name in zip(model.logm_planets.numpy(), system.get_masses(), system.get_names()):
+        print(name, np.round(np.log10(true_mass/true_mass[6]), 2), np.round(mass/masses[6], 2))
 
 
 
@@ -258,5 +256,3 @@ for i in range(1):
             #unary_operators=["square", "cube", "exp", "logm", "logm10"],
                    )
     equations.append(equation)
-
-'''
