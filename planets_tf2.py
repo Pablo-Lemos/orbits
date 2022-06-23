@@ -29,6 +29,8 @@ num_time_steps_tr = 512000  # Number of time steps for training (~27 years).
 # One time step is 30 minutes
 # An orbit for saturn is 129110 steps
 num_time_steps_val = 10000 # Using few to speed up calculations
+num_time_steps_symreg = 10000 # Using few to speed up calculations
+
 
 def read_data(num_time_steps_tr, num_time_steps_val):
     """
@@ -61,20 +63,22 @@ def read_data(num_time_steps_tr, num_time_steps_val):
     data = data[:-1]
 
     # Eliminate unused data
-    data = data[:(num_time_steps_tr + num_time_steps_val)]
+    data = data[:(num_time_steps_tr + num_time_steps_val + num_time_steps_symreg)]
 
     # Split into training and validation
     data_tr = data[:num_time_steps_tr]
-    data_val = data[num_time_steps_tr:]
+    data_val = data[num_time_steps_tr:num_time_steps_tr+num_time_steps_val]
+    data_symreg = data[-num_time_steps_symreg:]
 
     # Shuffle the data
     np.random.shuffle(data_tr)
     np.random.shuffle(data_val)
+    np.random.shuffle(data_symreg)
 
-    return data_tr, data_val, system
+    return data_tr, data_val, data_symreg, system
 
 
-def format_data(data_tr, data_val, system):
+def format_data_gnn(data_tr, data_val, system):
     """
     Convert the data into normalized tensorflow data objects that we can
     use for training
@@ -87,6 +91,7 @@ def format_data(data_tr, data_val, system):
     num_batches = num_time_steps_tr // batch_size_tr
 
     nedges = system.numEdges
+    masses = system.get_masses()
 
     # Create empty arrays for the distances for training and validation
     D_tr = np.empty([len(data_tr), nedges, 3])
@@ -186,73 +191,25 @@ if __name__ == "__main__":
     #tf.config.list_physical_devices('CPU')
     tf.config.run_functions_eagerly(False)
 
-    data_tr, data_val, system = read_data(num_time_steps_tr, num_time_steps_val)
+    data_tr, data_val, _, system = read_data(num_time_steps_tr,
+                                           num_time_steps_val)
     print('Read data')
-    train_ds, test_ds, norm_layer, senders, receivers = format_data(data_tr, data_val, system)
+    train_ds, test_ds, norm_layer, senders, receivers = format_data_gnn(
+        data_tr, data_val, system)
     print('Formatted data')
     model = main(system, train_ds, test_ds, norm_layer, senders, receivers)
     print('Model training completed')
 
     print ('Learned planetary masses:')
-    for mass, true_mass, name in zip(model.logm_planets.numpy(), system.get_masses(), system.get_names()):
-        print(name, np.round(np.log10(true_mass/true_mass[6]), 2), np.round(mass/masses[6], 2))
+    names = system.get_names()
+    true_masses = system.get_masses()
+    learned_masses = model.logm_planets.numpy()
+    isun = names.index("sun")
+    true_msun = true_masses[isun]
+    learned_msun = learned_masses[isun]
+    for learned_mass, true_mass, name in zip(
+            learned_masses, true_masses, names):
+        print(name, np.round(np.log10(true_mass/true_msun), 2),
+              np.round(learned_mass - learned_msun, 2))
 
 
-
-
-# Symbolic Regression
-'''
-
-dv = tf.reshape(D_val, [-1, nedges, 3])
-dv, fp = rotate_data(dv, fp)
-F_pred_sr = np.empty([num_time_steps_sr, nedges, 3])
-D_val_sr = np.empty([num_time_steps_sr, nedges, 3])
-for i in range(num_time_steps_sr):
-    Dv_temp, Fp_temp = rotate_data(dv[i], fp[i])
-    F_pred_sr[i] = Fp_temp
-    D_val_sr[i] = Dv_temp
-
-
-X = np.zeros([nedges*num_time_steps_sr,6])
-F = np.zeros([nedges*num_time_steps_sr,3])
-weights = np.zeros(nedges*num_time_steps_sr)
-k=0
-masses_learned = np.zeros(nplanets)
-masses_learned[0] = masses[0]
-masses_learned[1:] = 10**model.logm_planets.numpy()
-for i in range(nplanets):
-    for j in range(nplanets):
-        if i>j:
-            #X[k*num_time_steps_sr:(k+1)*num_time_steps_sr,0] = masses[i]
-            #X[k*num_time_steps_sr:(k+1)*num_time_steps_sr,1] = masses[j]
-            X[k*num_time_steps_sr:(k+1)*num_time_steps_sr,0] = np.log(masses_learned[i])
-            X[k*num_time_steps_sr:(k+1)*num_time_steps_sr,1] = np.log(masses_learned[j])
-            X[k*num_time_steps_sr:(k+1)*num_time_steps_sr,2:5] = D_val_sr[:,k,:]
-            X[k*num_time_steps_sr:(k+1)*num_time_steps_sr,5] = np.linalg.norm(D_val_sr[:,k,:], axis = -1)#**3
-            F[k*num_time_steps_sr:(k+1)*num_time_steps_sr,:] = F_pred_sr[:,k,:]#/F_norm #works better with
-            invw = np.mean(np.linalg.norm(F_pred_sr[:,k,:], axis = -1))
-            if invw <1e-50:
-                weights[k*num_time_steps_sr:(k+1)*num_time_steps_sr] = 1e-100
-            else: 
-                weights[k*num_time_steps_sr:(k+1)*num_time_steps_sr] = -np.log10(invw)
-            k+=1
-
-weights/=max(weights)
-
-from pysr import pysr
-# Learn equations
-equations = []
-for i in range(1):
-    equation = pysr(X[:,:], F[:,i], niterations=10,
-                    #batching = True, 
-                    #batchSize = 500,
-            weights = weights,      
-            #maxsize = 100,
-            populations = 4,
-            variable_names = ['m0', 'm1', 'x', 'y', 'z', 'r'],
-            binary_operators=["mult", "div"],
-            unary_operators=["square", "cube"],            
-            #binary_operators=["plus", "sub", "mult", "div"],
-            #unary_operators=["square", "cube", "exp", "logm", "logm10"],
-                   )
-    equations.append(equation)

@@ -98,9 +98,7 @@ class LearnForces(tf.keras.Model):
             trainable=True,
             constraint=lambda z: tf.clip_by_value(z, -12, 12)
         )
-        
-        #norm_layer = Normalize_gn()
-        
+
         self.graph_network = gn.blocks.EdgeBlock(
             #edge_model_fn=lambda: snt.Linear(3, with_bias = False, 
             #                                 w_init=M),
