@@ -125,7 +125,7 @@ if __name__ == '__main__':
     simulation_N = example(force_law='N')
     print("Newtonian Simulation is complete")
     # To save this:
-    file = open('Newton_simulation.pickle', 'wb')
-    pickle.dump(simulation_N, file)
+    file_2 = open('Newton_simulation.pickle', 'wb')
+    pickle.dump(simulation_N, file_2)
     print("Newtonian Simulation saved")
     '''

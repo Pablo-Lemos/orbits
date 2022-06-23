@@ -1,5 +1,6 @@
 import numpy as np
-
+import os
+import pickle
 
 #Define constants
 AU = 149.6e9    # Astronomical Unit in meters.
@@ -71,10 +72,16 @@ N = (np.sum((force_newton (mass_mercury, mass_sun, distance))**2))**0.5
 
 difference_beta = GR_beta - N
 difference_L = GR_L -N
-
+'''
 print(f'Newtonian Force= {N}')
 print(f'GR Force Beta version= {GR_beta}')
 print(f'GR Force L version= {GR_L}')
 print(f'Difference (beta version)= {difference_beta}')
 print(f'Difference (L version)= {difference_L}')
 print(f'Order= {GR_L/N}')
+'''
+
+N_file = open('newton_simulation.pickle', 'rb')
+N_system = pickle.load(N_file)
+GR_file = open('postnewton_augmented_simulation.pickle', 'rb')
+GR_system = pickle.load(GR_file)

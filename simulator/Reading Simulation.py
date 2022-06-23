@@ -4,25 +4,25 @@ from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 
 
-GR_file = open('postnewton_augmented_simulation.pickle', 'rb')
-GR_system = pickle.load(GR_file)
+#GR_file = open('postnewton_augmented_simulation.pickle', 'rb')
+#GR_system = pickle.load(GR_file)
 
-N_file = open('Newton_simulation.pickle', 'rb')
+N_file = open('newton_simulation.pickle', 'rb')
 N_system = pickle.load(N_file)
 
 # Extract the position, velocity, and names
-x_GR = GR_system.get_positions()
+#x_GR = GR_system.get_positions()
 x_N = N_system.get_positions()
-names = GR_system.get_names()
+names = N_system.get_names()
 
 fig = plt.figure(figsize=(8, 8))
 
-delta_x = x_GR[:, 1, 0] - x_N[:, 1, 0]
-delta_y = x_GR[:, 1, 1] - x_N[:, 1, 1]
-time = np.arange(len(delta_x))
+#delta_x = x_GR[:, 1, 0] - x_N[:, 1, 0]
+#delta_y = x_GR[:, 1, 1] - x_N[:, 1, 1]
+#time = np.arange(len(delta_x))
 
-GR_sun = x_GR[:, 0, :] - x_GR[:, 0, :]
-GR_mercury = x_GR[:, 1, :] - x_GR[:, 0, :]
+#GR_sun = x_GR[:, 0, :] - x_GR[:, 0, :]
+#GR_mercury = x_GR[:, 1, :] - x_GR[:, 0, :]
 N_mercury = x_N[:, 1, :] - x_N[:, 0, :]
 
 '''
@@ -36,15 +36,15 @@ ax.plot3D(N_mercury[-88:, 0], N_mercury[-88:, 1], N_mercury[-88:, 2], label='N M
 #ax.title('Mercury\'s Orbit using newtoninan and GR (Beta equation)')
 ax.set_zlabel('Z [AU]')
 '''
-'''
+
 for i in range(2):
-    plt.plot(x_GR[:46, i, 0], x_GR[:46, i, 1], label=f'{names[i]} GR 1st period')
-    plt.plot(x_N[:46, i, 0], x_N[:46, i, 1], label=f'{names[i]} N 1st period')
+    #plt.plot(x_GR[:46, i, 0], x_GR[:46, i, 1], label=f'{names[i]} GR 1st period')
+    plt.plot(x_N[:, i, 0], x_N[:, i, 1], label=f'{names[i]} N 1st period')
     #plt.plot(x_GR[23000:23046, i, 0], x_GR[23000:23046, i, 1], label=f'{names[i]} GR middle period')
     #plt.plot(x_N[23000:23046, i, 0], x_N[23000:23046, i, 1], label=f'{names[i]} N middle period')
     #plt.plot(x_GR[-45:, i, 0], x_GR[-45:, i, 1], label=f'{names[i]} GR 1000th Period')
     #plt.plot(x_N[-45:, i, 0], x_N[-45:, i, 1], label=f'{names[i]} N 1000th period')
-'''
+
 #plt.plot(time, delta_y, label= 'Time vs Delta Y (GR-N)')
 
 '''
