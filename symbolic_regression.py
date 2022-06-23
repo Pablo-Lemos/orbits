@@ -110,7 +110,8 @@ def run_symbolic_regression(D, model, system, num_pts=1000):
                 k += 1
 
     X = X.reshape([-1, 6])
-    y = X[:,0] #F_x
+    F = F.reshape([-1, 3])
+    y = F[:,0] #F_x
     #X[:, [0, 1]] = np.exp(X[:, [0, 1]])/1e23 #re-scale to prevent precision issues, since pysr uses 32-bit floats
     y /= np.std(y)                                 #same as above
 
