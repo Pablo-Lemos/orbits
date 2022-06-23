@@ -4,7 +4,7 @@ from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 
 
-GR_file = open('GR_simulation.pickle', 'rb')
+GR_file = open('postnewton_augmented_simulation.pickle', 'rb')
 GR_system = pickle.load(GR_file)
 
 N_file = open('Newton_simulation.pickle', 'rb')
