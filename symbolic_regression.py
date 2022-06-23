@@ -125,8 +125,14 @@ def run_symbolic_regression(D, model, system, num_pts=1000, name='eqns'):
     X = X[idx]
     y = y[idx]
 
+    # Randomly swap masses
+    for i in range(len(X)):
+        r = np.random.rand()
+        if r > 0.5:
+            X[i, 0], X[i, 1] = X[i, 1], X[i, 0]
 
     pysr_model = PySRRegressor(populations=64,
+                               niterations=1000,
                                binary_operators=["plus", "sub", "mult",
                                                  "pow", "div"],
                                unary_operators=["neg", "exp", "log_abs",
@@ -134,6 +140,8 @@ def run_symbolic_regression(D, model, system, num_pts=1000, name='eqns'):
                                temp_equation_file=False,
                                equation_file=os.path.join(
                                    "./data/saved_equations/", name),
+                               batching=True,
+                               batch_size=50,
                                progress=False,
                                procs=4,
                                annealing=False,
