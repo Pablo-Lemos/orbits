@@ -147,12 +147,11 @@ def run_symbolic_regression(D, model, system, num_pts=1000, name='eqns'):
                                annealing=False,
                                maxsize=40,
                                useFrequency=True,
-                               variable_names = ['m0', 'm1', 'x', 'y', 'z', 'r'],
                                optimizer_algorithm="BFGS",
                                optimizer_iterations=10,
                                optimize_probability=1.0
                                )
-    pysr_model.fit(X, y)
+    pysr_model.fit(X, y, variable_names = ['m0', 'm1', 'x', 'y', 'z', 'r'])
     return pysr_model
 
 
