@@ -146,7 +146,7 @@ def format_data_gnn(data_tr, data_val, system):
 
     # Create a normalization layer
     norm_layer = Normalize_gn(cartesian_to_spherical_coordinates(D_tr))
-    return train_ds, test_ds, norm_layer, senders, receivers
+    return train_ds, test_ds, norm_layer, senders, receivers, A_norm
 
 
 def main(system, train_ds, test_ds, norm_layer, senders, receivers):
@@ -194,9 +194,10 @@ if __name__ == "__main__":
     data_tr, data_val, _, system = read_data(num_time_steps_tr,
                                            num_time_steps_val)
     print('Read data')
-    train_ds, test_ds, norm_layer, senders, receivers = format_data_gnn(
+    train_ds, test_ds, norm_layer, senders, receivers, A_norm = format_data_gnn(
         data_tr, data_val, system)
     print('Formatted data')
+    print('A_norm =', A_norm)
     model = main(system, train_ds, test_ds, norm_layer, senders, receivers)
     print('Model training completed')
 
