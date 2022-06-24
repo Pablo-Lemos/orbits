@@ -21,7 +21,8 @@ delta_time = (0.5/24.) # 30 minutes
 MSUN = 1.9885e+30 # kg
 MEARTH = 5.9724e+24 # kg
 G = 6.67428e-11/AU**3*MSUN*DAY**2 # Change units of G to AU^3 MSun^{-1} Day^{-2}
-
+A_norm = 0.00042411583592113497 # From planets_tf2 (I will change the way
+# this is stored eventually)
 
 def force_newton(x, m1, m2):
     return G*m1*m2/np.linalg.norm(x, axis = -1, keepdims=True)**3.*x
@@ -96,7 +97,7 @@ def run_symbolic_regression(D, model, system, num_pts=1000, name='eqns'):
     learned_masses = model.logm_planets.numpy()
     isun = names.index("sun")
     learned_msun = learned_masses[isun]
-    learned_masses /= learned_msun
+    learned_masses -= learned_msun
 
     X = np.zeros([D.shape[0], D.shape[1], 6])
     X[:, :, 2:5] = D
@@ -135,7 +136,7 @@ def run_symbolic_regression(D, model, system, num_pts=1000, name='eqns'):
                                niterations=1000,
                                binary_operators=["plus", "sub", "mult",
                                                  "pow", "div"],
-                               unary_operators=["neg", "exp", "log_abs",
+                               unary_operators=["exp", "log_abs",
                                                 "sin", "cos"],
                                temp_equation_file=False,
                                equation_file=os.path.join(
@@ -147,12 +148,11 @@ def run_symbolic_regression(D, model, system, num_pts=1000, name='eqns'):
                                annealing=False,
                                maxsize=40,
                                useFrequency=True,
-                               variable_names = ['m0', 'm1', 'x', 'y', 'z', 'r'],
                                optimizer_algorithm="BFGS",
                                optimizer_iterations=10,
                                optimize_probability=1.0
                                )
-    pysr_model.fit(X, y)
+    pysr_model.fit(X, y, variable_names = ['m0', 'm1', 'x', 'y', 'z', 'r'],)
     return pysr_model
 
 
@@ -171,6 +171,7 @@ if __name__ == "__main__":
     print('Model loading completed')
 
     equations = run_symbolic_regression(D_symreg, model, system,
-                                        name="planetsonly")
+                                        name="planetsonly",
+                                        num_pts=5000)
 
 
