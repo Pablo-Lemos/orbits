@@ -65,7 +65,7 @@ def example(force_law):
     and starts it
     """
 
-    delta_time = 1*(24/24.) # The time interval to be used in Days
+    delta_time = 0.5*(24/24.) # The time interval to be used in Days
     total_time = 500*88. # Total time of the Simulation in Days
 
     # Define Astronomical bodies. Data taken from:
@@ -83,7 +83,7 @@ def example(force_law):
     pos_mercury = np.array([-5.78670715e-02, -4.61182491e-01, -3.17988125e-02])  # AU
     vel_mercury = np.array([2.22124712e-02, -2.53545004e-03, -2.24740703e-03])  # AU/DAY
     mercury.initiate(pos_mercury, vel_mercury)
-
+    '''
     # Venus
     venus = Body(name='Venus', mass=4.8685 * 10 ** 24 / MSUN)
     pos_venus = np.array([7.25372142e-01, 1.02962658e-01, -4.02455202e-02])  # AU
@@ -96,7 +96,7 @@ def example(force_law):
     vel_earth = np.array([-1.67163499e-02, -5.11906912e-03, -1.03151390e-06])  # AU/DAY
     earth.initiate(pos_earth, vel_earth)
 
-    '''
+    
     # Jupiter
     jupiter = Body(name='Jupiter', mass=1.898 * 10 ** 27 / MSUN)
     pos_jupiter = 5.203736631  # AU
@@ -105,9 +105,9 @@ def example(force_law):
     '''
 
     #Run the simulation
-    simulate([sun, mercury, venus, earth], total_time, delta_time, force_law=force_law.upper())
+    simulate([sun, mercury], total_time, delta_time, force_law=force_law.upper())
 
-    return StarSystem([sun, mercury, venus, earth])
+    return StarSystem([sun, mercury])
 
 if __name__ == '__main__':
     #GR
@@ -119,7 +119,7 @@ if __name__ == '__main__':
     pickle.dump(simulation_GR, file)
     print("GR Simulation saved")
 
-    '''
+
     #N
     print("Running Newtonian Simulation...")
     simulation_N = example(force_law='N')
@@ -128,4 +128,3 @@ if __name__ == '__main__':
     file_2 = open('Newton_simulation.pickle', 'wb')
     pickle.dump(simulation_N, file_2)
     print("Newtonian Simulation saved")
-    '''
