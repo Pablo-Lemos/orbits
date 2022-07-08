@@ -43,7 +43,7 @@ def force_newton(m1, m2, distance):
 
 def GR_correctoin (m1, m2, distance, velocity):
     """
-    Calculates GR correctoin
+    Calculates GR correction
     Args:
         m1: mass of first body
         m2: mass of second body
@@ -54,11 +54,10 @@ def GR_correctoin (m1, m2, distance, velocity):
 
     """
     dist_norm = np.sum(distance ** 2.) ** 0.5
-    L = np.cross(distance, velocity)
-    L_norm = np.sum(L**2) ** 0.5
+    L_norm = np.linalg.norm(np.cross(distance, velocity))
     f_n = G * m1 * m2 * distance / dist_norm ** 3.
-    cor = 3*L_norm**2/c**2 * dist_norm**2
-    return f_n * (1 + 10000 * cor)
+    corr = 3*L_norm**2/(c**2 * dist_norm**2)
+    return f_n * (1 + 1000 * corr)
 
 
 class Body(object):

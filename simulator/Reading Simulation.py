@@ -23,15 +23,18 @@ delta_y = x_GR[:, 1, 1] - x_N[:, 1, 1]
 
 GR_sun = x_GR[:, 0, :] - x_GR[:, 0, :]
 GR_mercury = x_GR[:, 1, :] - x_GR[:, 0, :]
+x_GR_rel = np.stack([GR_sun, GR_mercury], axis=1)
+N_sun = x_N[:, 0, :] - x_N[:, 0, :]
 N_mercury = x_N[:, 1, :] - x_N[:, 0, :]
+x_N_rel = np.stack([N_sun, N_mercury], axis=1)
 
 '''
 ax = plt.axes(projection='3d')
-ax.plot3D(GR_sun[:552, 0], GR_sun[:552, 1], GR_sun[:552, 2], 'yo', label='Sun')
+ax.plot3D(GR_sun[:, 0], GR_sun[:, 1], GR_sun[:, 2], 'yo', label='Sun')
 #ax.plot3D(GR_mercury[:90, 0], GR_mercury[:90, 1], GR_mercury[:90, 2], label='GR Mercury 1st period')
 #ax.plot3D(N_mercury[:90, 0], N_mercury[:90, 1], N_mercury[:90, 2], label='N Mercury 1st period')
-ax.plot3D(GR_mercury[-552:, 0], GR_mercury[-552:, 1], GR_mercury[-552:, 2], label='GR Mercury 1000th period')
-ax.plot3D(N_mercury[-552:, 0], N_mercury[-552:, 1], N_mercury[-552:, 2], label='N Mercury 1000th period')
+ax.plot3D(GR_mercury[:, 0], GR_mercury[:, 1], GR_mercury[:, 2], label='GR Mercury')
+ax.plot3D(N_mercury[:, 0], N_mercury[:, 1], N_mercury[:, 2], label='N Mercury')
 
 #ax.title('Mercury\'s Orbit using newtoninan and GR (Beta equation)')
 ax.set_zlabel('Z [AU]')
@@ -40,21 +43,21 @@ ax.set_zlabel('Z [AU]')
 for i in range(2):
     colors_GR = ['yellow', 'red']
     colors_N = ['yellow', 'grey']
-    ##plt.plot(x_N[:552, i, 0], x_N[:552, i, 1], 'o', color=colors_N[i], label=f'{names[i]} Newtonian 1st period')
-    #plt.plot(x_GR[23000:23046, i, 0], x_GR[23000:23046, i, 1], label=f'{names[i]} GR middle period')
+    #plt.plot(x_N_rel[:, i, 0], x_N_rel[:, i, 1], color=colors_N[i], label=f'{names[i]} Newtonian')
+    plt.plot(x_GR_rel[:, i, 0], x_GR_rel[:, i, 1], color=colors_N[i], label=f'{names[i]} Post Newtonian Augmented')
     #plt.plot(x_N[23000:23046, i, 0], x_N[23000:23046, i, 1], label=f'{names[i]} N middle period')
-    plt.plot(x_GR[-368:, i, 0], x_GR[-368:, i, 1], 'o', color=colors_GR[i], label=f'{names[i]} GR simulation')
-    plt.plot(x_N[-368:, i, 0], x_N[-368:, i, 1], 'o', color=colors_N[i], label=f'{names[i]} Newtonian simulation')
+    #plt.plot(x_GR[-368:, i, 0], x_GR[-368:, i, 1], 'o', color=colors_GR[i], label=f'{names[i]} GR simulation')
+    #plt.plot(x_N[-368:, i, 0], x_N[-368:, i, 1], 'o', color=colors_N[i], label=f'{names[i]} Newtonian simulation')
 
 #plt.plot(time, delta_y, label= 'Time vs Delta Y (GR-N)')
 
-'''
-plt.plot(GR_sun[:90, 0], GR_sun[:90, 1], 'yo', label=f'SUN')
-plt.plot(GR_mercury[:1800, 0], GR_mercury[:1800, 1], label=f'Mercury GR')
-plt.plot(N_mercury[:1800, 0], N_mercury[:1800, 1], color='orange',  label=f'Mercury N')
+"""
+plt.plot(GR_sun[:, 0], GR_sun[:, 1], 'yo', label=f'SUN')
+plt.plot(GR_mercury[:, 0], GR_mercury[:, 1], color='grey',  label=f'Mercury Post Newtonian Aug')
+#plt.plot(N_mercury[:, 0], N_mercury[:, 1], color='grey',  label=f'Mercury Newtonian')
 #plt.plot(GR_mercury[-90:, 0], GR_mercury[-90:, 1], label=f'Mercury GR 1000th period')
 #plt.plot(N_mercury[-89:, 0], N_mercury[-89:, 1], label=f'Mercury N 1000th period')
-'''
+"""
 
 
 plt.legend(loc=4)

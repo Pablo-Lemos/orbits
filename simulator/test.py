@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pickle
@@ -83,5 +84,18 @@ print(f'Order= {GR_L/N}')
 
 N_file = open('newton_simulation.pickle', 'rb')
 N_system = pickle.load(N_file)
-GR_file = open('postnewton_augmented_simulation.pickle', 'rb')
+GR_file = open('GR_simulation.pickle', 'rb')
 GR_system = pickle.load(GR_file)
+
+
+x_GR = GR_system.get_positions()
+x_N = N_system.get_positions()
+
+GR_sun = x_GR[:, 0, :] - x_GR[:, 0, :]
+GR_mercury = x_GR[:, 1, :] - x_GR[:, 0, :]
+
+x_GR_2 = np.stack([GR_sun, GR_mercury], axis=1)
+
+print(x_GR[:1, :, :])
+
+print(x_GR_2[:1, :, :])
