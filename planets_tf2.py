@@ -9,7 +9,7 @@ import pickle
 import os
 from simulator import base_classes_GR
 
-sys.modules['base_classes'] = base_classes_GR
+sys.modules['base_classes_GR'] = base_classes_GR
 print('Started')
 
 # Global constants
@@ -25,7 +25,7 @@ G = 6.67428e-11/AU**3*MSUN*DAY**2 # Change units of G to AU^3 MSun^{-1} Day^{-2}
 patience = 20 # For early stopping
 noise_level = 0.01 # Standard deviation of Gaussian noise for randomly perturbing input data
 num_epochs = 1000 # Number of training epochs. Set to large number
-num_time_steps_tr = 512000  # Number of time steps for training (~27 years).
+num_time_steps_tr = 30000  # Number of time steps for training (~27 years).
 # One time step is 30 minutes
 # An orbit for saturn is 129110 steps
 num_time_steps_val = 10000 # Using few to speed up calculations
@@ -45,7 +45,7 @@ def read_data(num_time_steps_tr, num_time_steps_val):
     # Read the file
     dir_path = os.path.dirname(os.path.realpath(__file__))
     #filename = os.path.join(dir_path, 'data/solar_system_data.pkl')
-    filename = '/Users/Shahir/Desktop/Sussex/Learnig GR with AI/Orbits_Original/Orbits_dev/simulator/newton_simulation.pickle'
+    filename = './simulator/newton_simulation_2pl.pickle'
     filehandler = open(filename, 'rb')
     system = pickle.load(filehandler)
 
@@ -159,7 +159,7 @@ def main(system, train_ds, test_ds, norm_layer, senders, receivers):
                                                       restore_best_weights=False)
 
     # Restore best weights not working, but found way around using checkpoint
-    checkpoint_filepath = './saved_models/planetsonly_i3'
+    checkpoint_filepath = './saved_models/sun_mercury_venus'
 
     checkpoint = tf.keras.callbacks.ModelCheckpoint(
         filepath=checkpoint_filepath,
@@ -205,7 +205,7 @@ if __name__ == "__main__":
     names = system.get_names()
     true_masses = system.get_masses()
     learned_masses = model.logm_planets.numpy()
-    isun = names.index("sun")
+    isun = names.index("Sun")
     true_msun = true_masses[isun]
     learned_msun = learned_masses[isun]
     for learned_mass, true_mass, name in zip(

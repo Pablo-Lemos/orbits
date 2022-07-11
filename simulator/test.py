@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pickle
-
+import pysr
 #Define constants
 AU = 149.6e9    # Astronomical Unit in meters.
 DAY = 24*3600. # Day in seconds
@@ -94,7 +94,7 @@ x_N = N_system.get_positions()
 GR_sun = x_GR[:, 0, :] - x_GR[:, 0, :]
 GR_mercury = x_GR[:, 1, :] - x_GR[:, 0, :]
 
-x_GR_2 = np.stack([GR_sun, GR_mercury], axis=1)
+x_GR_2 = np.concatenate([GR_sun, GR_mercury], axis=-1)
 
 print(x_GR[:1, :, :])
 

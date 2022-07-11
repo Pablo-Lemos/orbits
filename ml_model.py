@@ -32,6 +32,16 @@ class Normalize_gn(tf.keras.layers.Layer):
 
 
 def mean_weighted_error(y_true, y_pred, nplanets):
+    '''
+
+    Args:
+        y_true: true value
+        y_pred: predicted from model
+        nplanets: # of planets
+
+    Returns: loss
+
+    '''
     y_true = tf.reshape(y_true, shape=[-1, nplanets, 3])
     y_pred = tf.reshape(y_pred, shape=[-1, nplanets, 3])
     x = (y_true - y_pred)
@@ -85,14 +95,7 @@ class LearnForces(tf.keras.Model):
         # logG_init = tf.constant_initializer(np.log10(G/A_norm))
         # logG_init = tf.random_normal_initializer(mean=0.0, stddev=1.0)
 
-        M = tf.constant_initializer([
-            [-2, 0., 0.],
-            [0., 1., 0.],
-            [0., 0., 1.],
-            [1., 0., 0.],
-            [1., 0., 0.],
-            [1., 0., 0.],
-        ], )
+
 
         self.logm_planets = tf.Variable(
             initial_value=logm_init(shape=(self.nplanets,), dtype="float32"),
@@ -108,7 +111,7 @@ class LearnForces(tf.keras.Model):
             #                                  activation = tf.keras.activations.tanh),
             edge_model_fn=lambda: snt.Sequential([
                 norm_layer,
-                tf.keras.layers.Dense(128, input_dim=6, kernel_initializer='normal', activation='tanh'),
+                tf.keras.layers.Dense(128, input_dim=5, kernel_initializer='normal', activation='tanh'),
                 tf.keras.layers.Dense(128, activation='tanh'),
                 tf.keras.layers.Dense(128, activation='tanh'),
                 snt.Linear(3),
@@ -130,6 +133,8 @@ class LearnForces(tf.keras.Model):
         return acceleration_tr
 
     def call(self, D, training=False, extract=False):
+        #print(D.shape)
+        #print(self.nedges)
         if D.shape[0] is None:
             return D
         ntime = int(D.shape[0] // self.nedges)
@@ -219,7 +224,7 @@ class LearnForces(tf.keras.Model):
         # self.optimizer.apply_gradients(zip(gradients,self.trainable_variables))
 
         var_list = self.trainable_variables
-        grads = tape.gradient(loss, var_list)
+        grads = tape.gradient(loss, var_list) # d(loss) / d(variables)
 
         train_op_gnn = self.opt_gnn.apply_gradients(zip(grads[:-1], var_list[:-1]))
         train_op_masses = self.opt_masses.apply_gradients(zip(grads[-1:], var_list[-1:]))
