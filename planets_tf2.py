@@ -45,7 +45,7 @@ def read_data(num_time_steps_tr, num_time_steps_val):
     # Read the file
     dir_path = os.path.dirname(os.path.realpath(__file__))
     #filename = os.path.join(dir_path, 'data/solar_system_data.pkl')
-    filename = './simulator/newton_simulation_2pl.pickle'
+    filename = './simulator/newton_simulation.pickle'
     filehandler = open(filename, 'rb')
     system = pickle.load(filehandler)
 
@@ -159,7 +159,7 @@ def main(system, train_ds, test_ds, norm_layer, senders, receivers):
                                                       restore_best_weights=False)
 
     # Restore best weights not working, but found way around using checkpoint
-    checkpoint_filepath = './saved_models/sun_mercury_venus'
+    checkpoint_filepath = './saved_models/sun_mercury'
 
     checkpoint = tf.keras.callbacks.ModelCheckpoint(
         filepath=checkpoint_filepath,
