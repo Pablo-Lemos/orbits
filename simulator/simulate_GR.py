@@ -65,7 +65,7 @@ def example(force_law):
     and starts it
     """
 
-    delta_time = 6/24. # The time interval to be used in Days
+    delta_time = 1/24. # The time interval to be used in Days
     total_time = 30*365. # Total time of the Simulation in Days
 
     # Define Astronomical bodies. Data taken from:
@@ -83,13 +83,13 @@ def example(force_law):
     pos_mercury = np.array([-5.78670715e-02, -4.61182491e-01, -3.17988125e-02])  # AU
     vel_mercury = np.array([2.22124712e-02, -2.53545004e-03, -2.24740703e-03])  # AU/DAY
     mercury.initiate(pos_mercury, vel_mercury)
-
+    '''
     # Venus
     venus = Body(name='Venus', mass=4.8685 * 10 ** 24 / MSUN)
     pos_venus = np.array([7.25372142e-01, 1.02962658e-01, -4.02455202e-02])  # AU
     vel_venus = np.array([-2.96452677e-03, 1.99351788e-02, 4.42465220e-04])  # AU/DAY
     venus.initiate(pos_venus, vel_venus)
-    '''
+    
     # Earth
     earth = Body(name='Earth', mass=MEARTH / MSUN)
     pos_earth = np.array([-2.81758546e-01, 9.39043493e-01, -1.91271807e-04])  # AU
@@ -105,9 +105,9 @@ def example(force_law):
     '''
 
     #Run the simulation
-    simulate([sun, mercury, venus], total_time, delta_time, force_law=force_law.upper())
+    simulate([sun, mercury], total_time, delta_time, force_law=force_law.upper())
 
-    return StarSystem([sun, mercury, venus])
+    return StarSystem([sun, mercury])
 
 if __name__ == '__main__':
     #GR
@@ -115,7 +115,7 @@ if __name__ == '__main__':
     simulation_GR = example(force_law='GR')
     print("GR Simulation is complete")
     # To save this:
-    file = open('gr_simulation_2pl.pickle', 'wb')
+    file = open('1000_gr_simulation_1pl.pickle', 'wb')
     pickle.dump(simulation_GR, file)
     print("GR Simulation saved")
 
@@ -125,6 +125,6 @@ if __name__ == '__main__':
     simulation_N = example(force_law='N')
     print("Newtonian Simulation is complete")
     # To save this:
-    file_2 = open('newton_simulation_2pl.pickle', 'wb')
+    file_2 = open('newton_simulation_1pl.pickle', 'wb')
     pickle.dump(simulation_N, file_2)
     print("Newtonian Simulation saved")

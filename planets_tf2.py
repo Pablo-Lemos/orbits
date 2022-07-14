@@ -22,10 +22,10 @@ MEARTH = 5.9724e+24 # kg
 G = 6.67428e-11/AU**3*MSUN*DAY**2 # Change units of G to AU^3 MSun^{-1} Day^{-2}
 
 # Training variables
-patience = 20 # For early stopping
+patience = 20 # For early stopping (increased from 20)
 noise_level = 0.01 # Standard deviation of Gaussian noise for randomly perturbing input data
 num_epochs = 1000 # Number of training epochs. Set to large number
-num_time_steps_tr = 30000  # Number of time steps for training (~27 years).
+num_time_steps_tr = 242000  # Number of time steps for training (~27 years).
 # One time step is 30 minutes
 # An orbit for saturn is 129110 steps
 num_time_steps_val = 10000 # Using few to speed up calculations
@@ -45,7 +45,7 @@ def read_data(num_time_steps_tr, num_time_steps_val):
     # Read the file
     dir_path = os.path.dirname(os.path.realpath(__file__))
     #filename = os.path.join(dir_path, 'data/solar_system_data.pkl')
-    filename = './simulator/newton_simulation.pickle'
+    filename = './simulator/1000_gr_simulation_1pl.pickle'
     filehandler = open(filename, 'rb')
     system = pickle.load(filehandler)
 
@@ -159,7 +159,7 @@ def main(system, train_ds, test_ds, norm_layer, senders, receivers):
                                                       restore_best_weights=False)
 
     # Restore best weights not working, but found way around using checkpoint
-    checkpoint_filepath = './saved_models/sun_mercury'
+    checkpoint_filepath = './saved_models/sun_mercury_1000_gr'
 
     checkpoint = tf.keras.callbacks.ModelCheckpoint(
         filepath=checkpoint_filepath,
@@ -201,7 +201,7 @@ if __name__ == "__main__":
     model = main(system, train_ds, test_ds, norm_layer, senders, receivers)
     print('Model training completed')
 
-    print ('Learned planetary masses:')
+    print('Learned planetary masses:')
     names = system.get_names()
     true_masses = system.get_masses()
     learned_masses = model.logm_planets.numpy()

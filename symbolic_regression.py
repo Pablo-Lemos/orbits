@@ -32,7 +32,7 @@ def load_model(system, norm_layer, senders, receivers):
     """ Load the model"""
 
     # Restore best weights not working, but found way around using checkpoint
-    checkpoint_filepath = './saved_models/sun_mercury_venus'
+    checkpoint_filepath = './saved_models/sun_mercury'
 
     # Create a model
     model = LearnForces(system.numPlanets, senders, receivers, norm_layer,
@@ -153,7 +153,7 @@ def run_symbolic_regression(D, model, system, num_pts=1000, name='eqns'):
                                optimize_probability=1.0
                                )
 
-    pysr_model.fit(X, y, variable_names = ['m0', 'm1', 'x', 'y', 'z', 'r'])
+    pysr_model.fit(X, y, variable_names=['m0', 'm1', 'x', 'y', 'z', 'r'])
     return pysr_model
 
 
@@ -172,5 +172,5 @@ if __name__ == "__main__":
     print('Model loading completed')
 
     equations = run_symbolic_regression(D_symreg, model, system,
-                                        name="sun_mercury_venus",
+                                        name='sun_mercury',
                                         num_pts=5000)
