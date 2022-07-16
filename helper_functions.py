@@ -67,7 +67,7 @@ def spherical_to_cartesian_coordinates(point_spherical, name=None):
 def reshape_senders_receivers(senders, receivers, batch_size, nplanets, nedges):
     ''' Reshape receivers and senders to use in graph'''
     x = np.arange(batch_size)
-    xx = x.reshape(batch_size,1)
+    xx = x.reshape(batch_size, 1)
     y = np.ones(nedges)
     z = np.reshape(xx+y-1, batch_size*nedges)*nplanets
 

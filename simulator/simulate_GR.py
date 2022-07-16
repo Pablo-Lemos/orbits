@@ -65,7 +65,7 @@ def example(force_law):
     and starts it
     """
 
-    delta_time = 1/24. # The time interval to be used in Days
+    delta_time = 0.5/24. # The time interval to be used in Days
     total_time = 30*365. # Total time of the Simulation in Days
 
     # Define Astronomical bodies. Data taken from:
@@ -115,8 +115,8 @@ if __name__ == '__main__':
     simulation_GR = example(force_law='GR')
     print("GR Simulation is complete")
     # To save this:
-    file = open('1000_gr_simulation_1pl.pickle', 'wb')
-    pickle.dump(simulation_GR, file)
+    with open('1000_gr_simulation_1pl.pickle', 'wb') as file:
+        pickle.dump(simulation_GR, file)
     print("GR Simulation saved")
 
 
@@ -125,6 +125,6 @@ if __name__ == '__main__':
     simulation_N = example(force_law='N')
     print("Newtonian Simulation is complete")
     # To save this:
-    file_2 = open('newton_simulation_1pl.pickle', 'wb')
-    pickle.dump(simulation_N, file_2)
+    with open('newton_simulation_1pl.pickle', 'wb') as file_2:
+        pickle.dump(simulation_N, file_2)
     print("Newtonian Simulation saved")

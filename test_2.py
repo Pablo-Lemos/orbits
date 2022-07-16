@@ -1,27 +1,23 @@
+import sys
 import tensorflow as tf
 import matplotlib
+import numpy as np
+from simulator import base_classes_GR
 from matplotlib import pyplot as plt
+import pickle
 
 
-matplotlib.rcParams['figure.figsize'] = [9, 6]
+x = np.array(np.zeros((10, 3, 3)))
+x[:, 1, :] = x[:, 1, :] + [1, 1, 1]
+x[:, 2, :] = x[:, 2, :] + [2, 2, 2]
 
-def f(x):
-    y = x**2 + 2*x - 5
-    return y
+D_tr = np.reshape(x, [1, -1, 3])
 
 
-x = tf.linspace(-2, 2, 201)
-x = tf.cast(x, tf.float32)
+#print('x = ',  x[:2, :, :], '\n')
 
-noise = tf.random.normal(shape=tf.shape(x))
+#print('D = ', D_tr[:, :4, :])
 
-y = f(x) + noise
+#print('D.shape = ', np.shape(D_tr))
+print(x.shape[1])
 
-class Model(tf.keras.Model):
-    def __init__(self, units):
-        super().__init__()
-        self.dense1 = tf.keras.layers.Dense(units=units,
-                                            activation=tf.nn.relu,
-                                            kernel_initializer=tf.random.normal,
-                                            bias_initializer=tf.random.normal)
-        self.dense2 = tf.keras.layers.Dense(1)
