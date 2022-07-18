@@ -163,26 +163,17 @@ class LearnForces(tf.keras.Model):
                                                                       receivers_g)
             D_V = D_V * signs[:, np.newaxis]
 
-        # Create a graph for distances
-        graph_dict_D = {
+        # Create a graph
+        graph_dict_D_V = {
             "nodes": nodes_g,
             "edges": cartesian_to_spherical_coordinates(D_V),
             "receivers": receivers_g,
             "senders": senders_g,
             # "globals": self.logG
         }
-        # Create a graph for velocities
-        #graph_dict_V = {
-        #    "nodes": nodes_g,
-        #    "edges": V,
-        #    "receivers": receivers_g,
-        #    "senders": senders_g,
-        #}
-        # Create a graph list
-        #graph_dict_list = [graph_dict_D, graph_dict_V]
 
         # This step takes order 10 times longer than any other in this function
-        g = gn.utils_tf.data_dicts_to_graphs_tuple([graph_dict_D])
+        g = gn.utils_tf.data_dicts_to_graphs_tuple([graph_dict_D_V])
 
         """
         
@@ -231,7 +222,7 @@ class LearnForces(tf.keras.Model):
 
         with tf.GradientTape() as tape:
             # Forward pass
-            predictions = self(D_rot, training=True)
+            predictions = self(tf.concat([D_rot, V_rot], -1), training=True)
             # Compute the loss
             loss = mean_weighted_error(A_rot, predictions, self.nplanets)
 
@@ -269,7 +260,7 @@ class LearnForces(tf.keras.Model):
         # Unpack the data
         D, V, A = data
 
-        predictions = self(D)
+        predictions = self(tf.concat([D, V], -1))
 
         loss_test.update_state(A, predictions, self.nplanets)
 
