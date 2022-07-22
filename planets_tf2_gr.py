@@ -10,6 +10,7 @@ from ml_model_gr import *
 import pickle
 import os
 from simulator import base_classes_GR
+import helper_functions_gr as hf
 
 sys.modules['base_classes_GR'] = base_classes_GR
 print('Started')
@@ -27,7 +28,7 @@ G = 6.67428e-11/AU**3*MSUN*DAY**2 # Change units of G to AU^3 MSun^{-1} Day^{-2}
 patience = 20 # For early stopping (increased from 20)
 noise_level = 0.01 # Standard deviation of Gaussian noise for randomly perturbing input data
 num_epochs = 1000 # Number of training epochs. Set to large number
-num_time_steps_tr = 505000  # Number of time steps for training (~27 years).
+num_time_steps_tr = 504000  # Number of time steps for training (~27 years).
 # One time step is 30 minutes
 # An orbit for saturn is 129110 steps
 num_time_steps_val = 10000 # Using few to speed up calculations
@@ -165,8 +166,8 @@ def format_data_gnn(data_tr, data_val, system):
     test_ds = tf.data.Dataset.from_tensor_slices(
         (D_V_val, A_val))
 
-    # Create a normalization layer
-    norm_layer = Normalize_gn(cartesian_to_spherical_coordinates(D_tr))
+    # Create a normalization layer (using the gr helper function)
+    norm_layer = Normalize_gn(hf.cartesian_to_spherical_coordinates(D_V_tr))
     return train_ds, test_ds, norm_layer, senders, receivers, A_norm
 
 
@@ -180,7 +181,7 @@ def main(system, train_ds, test_ds, norm_layer, senders, receivers):
                                                       restore_best_weights=False)
 
     # Restore best weights not working, but found way around using checkpoint
-    checkpoint_filepath = './saved_models/sun_mercury_1000_gr'
+    checkpoint_filepath = './saved_models/sun_mercury_1000_gr_trial2'
 
     checkpoint = tf.keras.callbacks.ModelCheckpoint(
         filepath=checkpoint_filepath,

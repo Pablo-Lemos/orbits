@@ -14,15 +14,15 @@ def cartesian_to_spherical_coordinates(point_cartesian, eps=None):
     Note:
       In the following, A1 to An are optional batch dimensions.
     Args:
-      point_cartesian: A tensor of shape `[A1, ..., An, 3]`. In the last
-        dimension, the data follows the `x`, `y`, `z` order.
+      point_cartesian: A tensor of shape `[A1, ..., An, 6]`. In the last
+        dimension, the data follows the `x`, `y`, `z`, vx, vy, vz order.
       eps: A small `float`, to be added to the denominator. If left as `None`,
         its value is automatically selected using `point_cartesian.dtype`.
       name: A name for this op. Defaults to `cartesian_to_spherical_coordinates`.
     Returns:
-      A tensor of shape `[A1, ..., An, 3]`. The last dimensions contains
-      (`r`,`theta`,`phi`), where `r` is the sphere radius, `theta` is the polar
-      angle and `phi` is the azimuthal angle.
+      A tensor of shape `[A1, ..., An, 6]`. The last dimensions contains
+      (`r`,`theta_r`,`phi_r`, v, theta_v, phi_v), where `r` & v are the sphere radius and velocity,
+      `theta` is the polar angle and `phi` is the azimuthal angle.
     """
     # with tf.compat.v1.name_scope(name, "cartesian_to_spherical_coordinates",
     #                             [point_cartesian]):
@@ -33,12 +33,18 @@ def cartesian_to_spherical_coordinates(point_cartesian, eps=None):
     #    tensor_name="point_cartesian",
     #    has_dim_equals=(-1, 3))
 
-    x, y, z, v_x, v_y, v_z = tf.unstack(point_cartesian, axis=-1)
-    radius = tf.norm(tensor=point_cartesian, axis=-1)
-    theta = tf.acos(
+    x, y, z, vx, vy, vz = tf.unstack(point_cartesian, axis=-1)
+    r = tf.stack([x, y, z], axis=-1)
+    v = tf.stack([vx, vy, vz], axis=-1)
+    radius = tf.norm(tensor=r, axis=-1)
+    velocity = tf.norm(tensor=v, axis=-1)
+    theta_r = tf.acos(
         tf.clip_by_value(tf.divide(z, radius), -1., 1.))
-    phi = tf.atan2(y, x)
-    return tf.stack((log10(radius), theta, phi), axis=-1)
+    theta_v = tf.acos(
+        tf.clip_by_value(tf.divide(vz, velocity), -1., 1.))
+    phi_r = tf.atan2(y, x)
+    phi_v = tf.atan2(vy, vx)
+    return tf.stack((log10(radius), theta_r, phi_r, log10(velocity), theta_v, phi_v), axis=-1)
 
 
 def spherical_to_cartesian_coordinates(point_spherical, name=None):
@@ -46,18 +52,32 @@ def spherical_to_cartesian_coordinates(point_spherical, name=None):
     Note:
       In the following, A1 to An are optional batch dimensions.
     Args:
-      point_spherical: A tensor of shape `[A1, ..., An, 3]`. The last dimension
-        contains r, theta, and phi that respectively correspond to the radius,
-        polar angle and azimuthal angle; r must be non-negative.
+      point_spherical: A tensor of shape `[A1, ..., An, 6]`. The last dimension
+        contains r, theta_r, phi_r, v, theta_v, phi_v that respectively correspond to the radius,
+        polar angle for r, azimuthal angle for r, velocity, polar angle for v, azimuthal angle for v ;
+        r & v must be non-negative.
       name: A name for this op. Defaults to 'spherical_to_cartesian_coordinates'.
     Raises:
-      tf.errors.InvalidArgumentError: If r, theta or phi contains out of range
+      tf.errors.InvalidArgumentError: If r, theta, phi  or v contains out of range
       data.
     Returns:
-      A tensor of shape `[A1, ..., An, 3]`, where the last dimension contains the
-      cartesian coordinates in x,y,z order.
+      A tensor of shape `[A1, ..., An, 6]`, where the last dimension contains the
+      cartesian coordinates in x,y,z,vx,vy,vz order.
     """
 
+    '''logr, theta_r, phi_r, logv, theta_v, phi_v = tf.unstack(point_spherical, axis=-1)
+    r = tf.pow(10., logr)
+    v= tf.pow(10., logv)
+    # r = asserts.assert_all_above(r, 0)
+    tmp_r = r * tf.sin(theta_r)
+    temp_v = v * tf.sin(theta_v)
+    x = tmp_r * tf.cos(phi_r)
+    y = tmp_r * tf.sin(phi_r)
+    z = r * tf.cos(theta_r)
+    vx = temp_v * tf.cos(phi_v)
+    vy = temp_v * tf.sin(phi_v)
+    vz = v * tf.cos(theta_v)
+    return tf.stack((x, y, z, vx, vy, vz), axis=-1)'''
     logr, theta, phi = tf.unstack(point_spherical, axis=-1)
     r = tf.pow(10., logr)
     # r = asserts.assert_all_above(r, 0)
@@ -94,11 +114,11 @@ def build_rotation_matrix(a, b, g):
     return tf.stack((A0, A1, A2), axis=1)
 
 
-def rotate_data(D, A, uniform=True):
+def rotate_data(D_V, A, uniform=True):
     if uniform:
         n = 1
     else:
-        n = D.shape[0]
+        n = D_V.shape[0]
 
     # I think the maxes should be 2pi, pi, pi, but going for overkill just in case
     alpha = tf.random.uniform([n, ], minval=0, maxval=2 * np.pi, dtype=tf.dtypes.float32)
@@ -107,16 +127,24 @@ def rotate_data(D, A, uniform=True):
     gamma = tf.random.uniform([n, ], minval=0, maxval=np.pi, dtype=tf.dtypes.float32)
     R = build_rotation_matrix(alpha, beta, gamma)
 
+    x, y, z, vx, vy, vz = tf.unstack(D_V, axis=-1)
+    D = tf.stack([x, y, z], axis=-1)
+    V = tf.stack([vx, vy, vz], axis=-1)
+
     if uniform:
         # Rotate all points by the same angle
         D = tf.linalg.matmul(D, R)
+        V = tf.linalg.matmul(V, R)
+        D_V = tf.concat([D, V], axis=-1)
         A = tf.linalg.matmul(A, R)
     else:
         # Rotate each time step by a different angle:
         D = tf.einsum('nij,njk->nik', D, R)
+        V = tf.einsum('nij,njk->nik', V, R)
+        D_V = tf.concat([D, V], axis=-1)
         A = tf.einsum('nij,njk->nik', A, R)
 
-    return D, A
+    return D_V, A
 
 
 def shuffle_senders_receivers(senders, receivers):

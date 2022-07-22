@@ -4,18 +4,22 @@ import graph_nets as gn
 import sonnet as snt
 import networkx as nx
 
-from helper_functions import *
+from helper_functions_gr import *
 
 
 class Normalize_gn(tf.keras.layers.Layer):
-    def __init__(self, D):
+    def __init__(self, D_V):
         super(Normalize_gn, self).__init__()
-        self.maxs_r = tf.reduce_max(D[:, :1], axis=0)
-        self.mins_r = tf.reduce_min(D[:, :1], axis=0)
+        self.maxs_r = tf.reduce_max(D_V[:, :1], axis=0)
+        self.mins_r = tf.reduce_min(D_V[:, :1], axis=0)
+        self.maxs_v = tf.reduce_max(D_V[:, 4:5], axis=0)
+        self.mins_v = tf.reduce_min(D_V[:, 4:5], axis=0)
 
     def call(self, inputs):
         maxs_r = self.maxs_r
         mins_r = self.mins_r
+        maxs_v = self.maxs_v
+        mins_v = self.mins_v
         maxs_theta = tf.constant([np.pi])
         maxs_phi = tf.constant([np.pi])
         mins_theta = tf.constant([0.])
@@ -23,8 +27,8 @@ class Normalize_gn(tf.keras.layers.Layer):
         maxs_m = tf.constant([12.])
         mins_m = tf.constant([-12.])
 
-        maxs = tf.concat([maxs_r, maxs_theta, maxs_phi, maxs_m, maxs_m], axis=-1)
-        mins = tf.concat([mins_r, mins_theta, mins_phi, mins_m, mins_m], axis=-1)
+        maxs = tf.concat([maxs_r, maxs_theta, maxs_phi, maxs_v, maxs_theta, maxs_phi, maxs_m, maxs_m], axis=-1)
+        mins = tf.concat([mins_r, mins_theta, mins_phi, mins_v, mins_theta, mins_phi, mins_m, mins_m], axis=-1)
 
         X = (inputs - mins) / (maxs - mins)
         outputs = 2 * X - 1
@@ -43,6 +47,7 @@ def mean_weighted_error(y_true, y_pred, nplanets):
     Returns: loss
 
     '''
+    # Don't understand why y_true = A_rot nad y_pred = D_rot
     y_true = tf.reshape(y_true, shape=[-1, nplanets, 3])
     y_pred = tf.reshape(y_pred, shape=[-1, nplanets, 3])
     x = (y_true - y_pred)
@@ -115,7 +120,7 @@ class LearnForces(tf.keras.Model):
                 tf.keras.layers.Dense(128, input_dim=8, kernel_initializer='normal', activation='tanh'),
                 tf.keras.layers.Dense(128, activation='tanh'),
                 tf.keras.layers.Dense(128, activation='tanh'),
-                snt.Linear(6),
+                snt.Linear(3),
             ]),
             use_edges=True,
             use_receiver_nodes=True,
@@ -134,7 +139,8 @@ class LearnForces(tf.keras.Model):
         return acceleration_tr
 
     def call(self, D_V, training=False, extract=False):
-        #print(D.shape)
+        #print(f"D_V shape in call: {D_V.shape}")
+        #print((f"D_V in call: {D_V}"))
         #print(self.nedges)
         if D_V.shape[0] is None:
             return D_V
@@ -189,9 +195,9 @@ class LearnForces(tf.keras.Model):
         g = self.graph_network(g)
         g = g.replace(
             edges=spherical_to_cartesian_coordinates(g.edges))
-        f = self.sum_forces(g[0])
+        f = self.sum_forces(g)
 
-        a = self.get_acceleration(f, g[0])
+        a = self.get_acceleration(f, g)
         if extract == True:
             f = tf.reshape(g.edges, shape=[-1, self.nedges, 3]).numpy()
             a = tf.reshape(a, shape=[-1, self.nplanets, 3]).numpy()
@@ -204,63 +210,63 @@ class LearnForces(tf.keras.Model):
         #    data = data[0]
 
         # Unpack the data
-        D, V, A = data
+        D_V, A = data
+        #print(f'D_V shape in training step {D_V.shape}')
 
-        D_rs = tf.reshape(D, shape=[-1, self.nedges, 3])
-        V_rs = tf.reshape(V, shape=[-1, self.nedges, 3])
+
+        D_V_rs = tf.reshape(D_V, shape=[-1, self.nedges, 6])
         A_rs = tf.reshape(A, shape=[-1, self.nplanets, 3])
         # Randomly 3D rotate the data
-        D_rot, V_rot, A_rot = rotate_data(D_rs, V_rs, A_rs, uniform=False)
-        D_rot = tf.reshape(D_rot, shape=[-1, 3])
-        V_rot = tf.reshape(V_rot, shape=[-1, 3])
+        D_V_rot, A_rot = rotate_data(D_V_rs, A_rs, uniform=False)
+        D_V_rot = tf.reshape(D_V_rot, shape=[-1, 6])
         A_rot = tf.reshape(A_rot, shape=[-1, 3])
+        #print(f'D_V shape in training step after rotation {D_V_rot.shape}')
         # Add Noise
-        D_noise = tf.random.normal(tf.shape(D), 0, self.noise_level, tf.float32)
-        V_noise = tf.random.normal(tf.shape(V), 0, self.noise_level, tf.float32)
-        D_rot = D_rot * (1 + D_noise)
-        V_rot = V_rot * (1 + V_noise)
+        D_V_noise = tf.random.normal(tf.shape(D_V_rot), 0, self.noise_level, tf.float32)
+        D_V_rot = D_V_rot * (1 + D_V_noise)
 
         with tf.GradientTape() as tape:
             # Forward pass
-            predictions = self(tf.concat([D_rot, V_rot], -1), training=True)
+            predictions = self(D_V_rot, training=True)
             # Compute the loss
             loss = mean_weighted_error(A_rot, predictions, self.nplanets)
 
-        # Compute gradients
-        # Trainable variables are the masses and the MLP layers
-        # Trainable_vars = self.trainable_variables+ list(self.graph_network.trainable_variables)
-        # gradients = tape.gradient(loss, trainable_vars)
-        # gradients, _ = tf.clip_by_global_norm(gradients, 5.0)
-        # Update weights
-        # self.optimizer.apply_gradients(zip(gradients,trainable_vars))
-        # gradients = tape.gradient(loss, self.trainable_variables)
-        # gradients, _ = tf.clip_by_global_norm(gradients, 5.0)
-        # gradients = [tf.clip_by_value(i, -5, 5) for i in gradients]
-        # Update weights
-        # self.optimizer.apply_gradients(zip(gradients,self.trainable_variables))
+            # Compute gradients
+            # Trainable variables are the masses and the MLP layers
+            # Trainable_vars = self.trainable_variables+ list(self.graph_network.trainable_variables)
+            # gradients = tape.gradient(loss, trainable_vars)
+            # gradients, _ = tf.clip_by_global_norm(gradients, 5.0)
+            # Update weights
+            # self.optimizer.apply_gradients(zip(gradients,trainable_vars))
+            # gradients = tape.gradient(loss, self.trainable_variables)
+            # gradients, _ = tf.clip_by_global_norm(gradients, 5.0)
+            # gradients = [tf.clip_by_value(i, -5, 5) for i in gradients]
+            # Update weights
+            # self.optimizer.apply_gradients(zip(gradients,self.trainable_variables))
 
-        var_list = self.trainable_variables
-        grads = tape.gradient(loss, var_list) # d(loss) / d(variables)
+            var_list = self.trainable_variables
+            grads = tape.gradient(loss, var_list)  # d(loss) / d(variables)
 
-        train_op_gnn = self.opt_gnn.apply_gradients(zip(grads[:-1], var_list[:-1]))
-        train_op_masses = self.opt_masses.apply_gradients(zip(grads[-1:], var_list[-1:]))
-        # var_list1 = self.trainable_variables
-        # var_list2 = list(self.graph_network.trainable_variables)
-        # gradients = tape.gradient(loss, var_list1 + var_list2)
-        # grads1 = gradients[:len(var_list1)]
-        # grads2 = gradients[len(var_list1):]
-        # train_op1 = self.opt1.apply_gradients(zip(grads1, var_list1))
-        # train_op2 = self.opt2.apply_gradients(zip(grads2, var_list2))
-        # train_op = tf.group(train_op1, train_op2)
+            train_op_gnn = self.opt_gnn.apply_gradients(zip(grads[:-1], var_list[:-1]))
+            train_op_masses = self.opt_masses.apply_gradients(zip(grads[-1:], var_list[-1:]))
+            # var_list1 = self.trainable_variables
+            # var_list2 = list(self.graph_network.trainable_variables)
+            # gradients = tape.gradient(loss, var_list1 + var_list2)
+            # grads1 = gradients[:len(var_list1)]
+            # grads2 = gradients[len(var_list1):]
+            # train_op1 = self.opt1.apply_gradients(zip(grads1, var_list1))
+            # train_op2 = self.opt2.apply_gradients(zip(grads2, var_list2))
+            # train_op = tf.group(train_op1, train_op2)
 
-        loss_tracker.update_state(loss)
+            loss_tracker.update_state(loss)
         return {"loss": loss_tracker.result()}
 
     def test_step(self, data):
         # Unpack the data
-        D, V, A = data
+        D_V, A = data
+        #print(f'D_V shape in test step {D_V.shape}')
 
-        predictions = self(tf.concat([D, V], -1))
+        predictions = self(D_V)
 
         loss_test.update_state(A, predictions, self.nplanets)
 
