@@ -12,8 +12,8 @@ class Normalize_gn(tf.keras.layers.Layer):
         super(Normalize_gn, self).__init__()
         self.maxs_r = tf.reduce_max(D_V[:, :1], axis=0)
         self.mins_r = tf.reduce_min(D_V[:, :1], axis=0)
-        self.maxs_v = tf.reduce_max(D_V[:, 4:5], axis=0)
-        self.mins_v = tf.reduce_min(D_V[:, 4:5], axis=0)
+        self.maxs_v = tf.reduce_max(D_V[:, 3:4], axis=0)
+        self.mins_v = tf.reduce_min(D_V[:, 3:4], axis=0)
 
     def call(self, inputs):
         maxs_r = self.maxs_r
