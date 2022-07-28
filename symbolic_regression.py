@@ -4,10 +4,12 @@ from helper_functions import cartesian_to_spherical_coordinates
 import tensorflow as tf
 import numpy as np
 from pysr import PySRRegressor
+from pysr import best
 import os
+import sympy
 
 # Training variables
-num_time_steps_tr = 200000  # Number of time steps for training (~27 years).
+num_time_steps_tr = 504000  # Number of time steps for training (~28.8 years).
 noise_level = 0.01 # Standard deviation of Gaussian noise for randomly perturbing input data
 # One time step is 30 minutes
 # An orbit for saturn is 129110 steps
@@ -23,6 +25,7 @@ MEARTH = 5.9724e+24 # kg
 G = 6.67428e-11/AU**3*MSUN*DAY**2 # Change units of G to AU^3 MSun^{-1} Day^{-2}
 A_norm = 0.00042411583592113497 # From planets_tf2 (I will change the way
 # this is stored eventually)
+c = (2.99792458 * 10**8) * DAY / AU #speed of light in AU/Day
 
 def force_newton(x, m1, m2):
     return G*m1*m2/np.linalg.norm(x, axis = -1, keepdims=True)**3.*x
@@ -113,14 +116,14 @@ def run_symbolic_regression(D, model, system, num_pts=1000, name='eqns'):
 
     X = X.reshape([-1, 6])
     F = F.reshape([-1, 3])
-    y = F[:,0] #F_x
+    y = F[:, 0] #F_x
     #X[:, [0, 1]] = np.exp(X[:, [0, 1]])/1e23 #re-scale to prevent precision issues, since pysr uses 32-bit floats
     y /= np.std(y)                                 #same as above
 
-    m_std = np.std(X[:,:2])
-    x_std = np.std(X[:,2:5])
-    X[:,:2]/= m_std
-    X[:,2:]/= x_std
+    m_std = np.std(X[:, :2])
+    x_std = np.std(X[:, 2:5])
+    X[:, :2] /= m_std
+    X[:, 2:] /= x_std
 
     idx = np.random.choice(X.shape[0], num_pts, replace=False)
     X = X[idx]
@@ -134,10 +137,13 @@ def run_symbolic_regression(D, model, system, num_pts=1000, name='eqns'):
 
     pysr_model = PySRRegressor(populations=64,
                                niterations=1000,
-                               binary_operators=["plus", "sub", "mult",
-                                                 "pow", "div"],
-                               unary_operators=["exp", "log_abs",
-                                                "sin", "cos"],
+                               binary_operators=["plus", "sub", "mult", "div"],
+                               unary_operators=["square", "cube", "quad(x) = x^4", "quint(x) = x^5"],
+                               constraints={
+                                   "div": (-1, 9),
+                                   "square": 9,
+                                   "cube": 9,
+                               },
                                temp_equation_file=False,
                                equation_file=os.path.join(
                                    "./data/saved_equations/", name),
@@ -147,7 +153,9 @@ def run_symbolic_regression(D, model, system, num_pts=1000, name='eqns'):
                                procs=4,
                                annealing=False,
                                maxsize=40,
+                               maxdepth=10,  # avoid deep nesting
                                useFrequency=True,
+                               variable_names=['m0', 'm1', 'x', 'y', 'z', 'r'],
                                optimizer_algorithm="BFGS",
                                optimizer_iterations=10,
                                optimize_probability=1.0
@@ -172,5 +180,7 @@ if __name__ == "__main__":
     print('Model loading completed')
 
     equations = run_symbolic_regression(D_symreg, model, system,
-                                        name='sun_mercury',
+                                        name='sun_mercury_n_minimum_operators_variables_myfunctions',
                                         num_pts=5000)
+
+    #best(equations).sympy()

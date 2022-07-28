@@ -1,16 +1,20 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# Imports
-import sys
-
-from ml_model import *
+from planets_tf2 import read_data
+from ml_model import LearnForces, Normalize_gn
+from helper_functions import cartesian_to_spherical_coordinates
+import tensorflow as tf
+import numpy as np
 import pickle
+import matplotlib.pyplot as plt
 import os
-from simulator import base_classes_GR
 
-sys.modules['base_classes_GR'] = base_classes_GR
-print('Started')
+
+# Training variables
+num_time_steps_tr = 504000  # Number of time steps for training (~27 years).
+noise_level = 0.01 # Standard deviation of Gaussian noise for randomly perturbing input data
+# One time step is 30 minutes
+# An orbit for saturn is 129110 steps
+num_time_steps_val = 10000 # Using few to speed up calculations
+num_time_steps_symreg = 10000 # Using few to speed up calculations
 
 # Global constants
 AU = 149.6e6 * 1000 # Astronomical Unit in meters.
@@ -20,16 +24,12 @@ delta_time = (0.5/24.) # 30 minutes
 MSUN = 1.9885e+30 # kg
 MEARTH = 5.9724e+24 # kg
 G = 6.67428e-11/AU**3*MSUN*DAY**2 # Change units of G to AU^3 MSun^{-1} Day^{-2}
+A_norm = 0.00042411583592113497 # From planets_tf2 (I will change the way
+# this is stored eventually)
 
-# Training variables
-patience = 20 # For early stopping
-noise_level = 0.01 # Standard deviation of Gaussian noise for randomly perturbing input data
-num_epochs = 1000 # Number of training epochs. Set to large number
-num_time_steps_tr = 504000  # Number of time steps for training (~28.8 years).
-# One time step is 30 minutes
-# An orbit for saturn is 129110 steps
-num_time_steps_val = 10000 # Using few to speed up calculations
-num_time_steps_symreg = 10000 # Using few to speed up calculations
+
+def force_newton(x, m1, m2):
+    return G*m1*m2/np.linalg.norm(x, axis=-1, keepdims=True)**3.*x
 
 
 def read_data(num_time_steps_tr, num_time_steps_val):
@@ -146,41 +146,22 @@ def format_data_gnn(data_tr, data_val, system):
 
     # Create a normalization layer
     norm_layer = Normalize_gn(cartesian_to_spherical_coordinates(D_tr))
-    return train_ds, test_ds, norm_layer, senders, receivers, A_norm
+
+    return train_ds, test_ds, norm_layer, senders, receivers, A_norm, D_val
 
 
-def main(system, train_ds, test_ds, norm_layer, senders, receivers):
-    """ Main function: Create model and train"""
-
-    # Create my callbacks: early stopping and checkpoint
-    early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
-                                                      verbose=1,
-                                                      patience=patience,
-                                                      restore_best_weights=False)
+def load_model(system, norm_layer, senders, receivers):
+    """ Load the model"""
 
     # Restore best weights not working, but found way around using checkpoint
     checkpoint_filepath = './saved_models/sun_mercury_n'
-
-    checkpoint = tf.keras.callbacks.ModelCheckpoint(
-        filepath=checkpoint_filepath,
-        save_weights_only=False,
-        save_best_only=True,
-        verbose=0)
 
     # Create a model
     model = LearnForces(system.numPlanets, senders, receivers, norm_layer,
                         noise_level=noise_level)
 
     # Compile
-    # model.compile(run_eagerly=True)
     model.compile()
-
-    model.fit(train_ds,
-              epochs=num_epochs,
-              verbose=2,
-              callbacks=[early_stopping, checkpoint],
-              validation_data=test_ds
-              )
 
     model.load_weights(checkpoint_filepath)
 
@@ -188,27 +169,44 @@ def main(system, train_ds, test_ds, norm_layer, senders, receivers):
 
 
 if __name__ == "__main__":
-    #tf.config.list_physical_devices('CPU')
+    tf.config.list_physical_devices('CPU')
     tf.config.run_functions_eagerly(False)
 
     data_tr, data_val, _, system = read_data(num_time_steps_tr,
                                            num_time_steps_val)
     print('Read data')
-    train_ds, test_ds, norm_layer, senders, receivers, A_norm = format_data_gnn(
+    train_ds, test_ds, norm_layer, senders, receivers, A_norm, D_val = format_data_gnn(
         data_tr, data_val, system)
     print('Formatted data')
-    print('A_norm =', A_norm)
-    model = main(system, train_ds, test_ds, norm_layer, senders, receivers)
-    print('Model training completed')
+    model = load_model(system, norm_layer, senders, receivers)
+    print('Model loading completed')
 
-    print('Learned planetary masses:')
-    names = system.get_names()
-    true_masses = system.get_masses()
+    # Evaluating on the validation data
+    ap, fp = model(D_val[0], extract=True)
+
+    nedges = system.numEdges
+    masses = system.get_masses()
+    nplanets = system.numPlanets
     learned_masses = model.logm_planets.numpy()
-    isun = names.index("Sun")
-    true_msun = true_masses[isun]
-    learned_msun = learned_masses[isun]
-    for learned_mass, true_mass, name in zip(
-            learned_masses, true_masses, names):
-        print(name, np.round(np.log10(true_mass/true_msun), 2),
-              np.round(learned_mass - learned_msun, 2))
+    names = system.get_names()
+
+    F_val_new = np.empty([len(data_val), nedges, 3])
+    k = 0
+    for i in range(nplanets):
+        for j in range(nplanets):
+            if i > j:
+                d_val = data_val[:, j, :3] - data_val[:, i, :3]
+                F_val_new[:, k, :] = force_newton(d_val, 10 ** learned_masses[i],
+                                                  10 ** learned_masses[j])  # cartesian_to_spherical_coordinates(d_val)
+                k += 1
+
+    # nrows = nplanets // 4
+    nrows = 1
+    fig, ax = plt.subplots(nrows, 2, figsize=(16, 8 * nrows))
+    for i in range(nplanets):
+        ax[i // 1].set_title(names[i], fontsize=16)
+        ax[i // 1].plot(ap[:, i, 0], ap[:, i, 1], '.', label='Learned')
+        ax[i // 1].plot(data_val[:, i, 3] / A_norm, data_val[:, i, 4] / A_norm, '.', label='Truth')
+
+    ax[0].legend()
+    plt.show()
