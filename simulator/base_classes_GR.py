@@ -4,12 +4,12 @@ import numpy as np
 
 #Define constants
 AU = 149.6e9    # Astronomical Unit in meters.
-DAY = 24*3600. # Day in seconds
+DAY = 24*3600.  # Day in seconds
 YEAR = 365.25*DAY
-MSUN = 1.98892 * 10**30 # Solar mass
-MEARTH = 5.9742 * 10**24 # Earth mass
-G = 6.67428e-11/AU**3*MSUN*DAY**2 # The gravitational constant G in AU**3 /MSUN/ Day^2
-c = (2.99792458 * 10**8) * DAY / AU #speed of light in AU/Day
+MSUN = 1.98892 * 10**30     # Solar mass
+MEARTH = 5.9742 * 10**24    # Earth mass
+G = 6.67428e-11/AU**3*MSUN*DAY**2   # The gravitational constant G in AU**3 /MSUN/ Day^2
+c = (2.99792458 * 10**8) * DAY / AU     # Speed of light in AU/Day
 
 def random_two_vector():
     """
@@ -57,7 +57,7 @@ def GR_correctoin (m1, m2, distance, velocity):
     L_norm = np.linalg.norm(np.cross(distance, velocity))
     f_n = G * m1 * m2 * distance / dist_norm ** 3.
     corr = 3*L_norm**2/(c**2 * dist_norm**2)
-    return f_n * (1 + 1000 * corr)
+    return f_n * (1 + 1000*corr)
 
 
 class Body(object):

@@ -4,10 +4,10 @@ from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 
 
-GR_file = open('GR_simulation.pickle', 'rb')
+GR_file = open('1000_gr_simulation_1pl_60y_1Day.pickle', 'rb')
 GR_system = pickle.load(GR_file)
 
-N_file = open('newton_simulation.pickle', 'rb')
+N_file = open('newton_simulation_1pl_60y_1Day.pickle', 'rb')
 N_system = pickle.load(N_file)
 
 # Extract the position, velocity, and names
@@ -19,7 +19,7 @@ fig = plt.figure(figsize=(8, 8))
 
 delta_x = x_GR[:, 1, 0] - x_N[:, 1, 0]
 delta_y = x_GR[:, 1, 1] - x_N[:, 1, 1]
-#time = np.arange(len(delta_x))
+time = np.arange(len(delta_x))
 
 GR_sun = x_GR[:, 0, :] - x_GR[:, 0, :]
 GR_mercury = x_GR[:, 1, :] - x_GR[:, 0, :]
@@ -40,16 +40,28 @@ ax.plot3D(N_mercury[:, 0], N_mercury[:, 1], N_mercury[:, 2], label='N Mercury')
 ax.set_zlabel('Z [AU]')
 '''
 
+'''
 for i in range(2):
     colors_GR = ['yellow', 'red']
     colors_N = ['yellow', 'grey']
-    #plt.plot(x_N_rel[:, i, 0], x_N_rel[:, i, 1], color=colors_N[i], label=f'{names[i]} Newtonian')
-    plt.plot(x_GR_rel[:, i, 0], x_GR_rel[:, i, 1], color=colors_N[i], label=f'{names[i]} Post Newtonian Augmented')
+    plt.plot(x_N_rel[-88:, i, 0], x_N_rel[-88:, i, 1], 'o', color=colors_GR[i], label=f'{names[i]} Newtonian')
+    plt.plot(x_GR_rel[-88:, i, 0], x_GR_rel[-88:, i, 1], 'o',  color=colors_N[i], label=f'{names[i]} Post Newtonian Augmented')
     #plt.plot(x_N[23000:23046, i, 0], x_N[23000:23046, i, 1], label=f'{names[i]} N middle period')
     #plt.plot(x_GR[-368:, i, 0], x_GR[-368:, i, 1], 'o', color=colors_GR[i], label=f'{names[i]} GR simulation')
     #plt.plot(x_N[-368:, i, 0], x_N[-368:, i, 1], 'o', color=colors_N[i], label=f'{names[i]} Newtonian simulation')
+'''
 
-#plt.plot(time, delta_y, label= 'Time vs Delta Y (GR-N)')
+'''
+plt.plot(time, delta_y, label='Delta Y vs Time (GR-N)')
+plt.title('The difference in the Y-position between the Newtonian and GR-Augmented Simulation', y=1.05)
+'''
+
+
+plt.plot(x_N_rel[-88:, 0, 0], x_N_rel[-88:, 0, 1], 'o', color='yellow', label=f'Sun')
+plt.plot(x_N_rel[-88:, 1, 0], x_N_rel[-88:, 1, 1], 'o', color='red', label=f'Mercury Newtonian')
+plt.plot(x_GR_rel[-88:, 1, 0], x_GR_rel[-88:, 1, 1], 'o',  color='grey', label=f'Mercury GR Corrected')
+plt.title('Sun and Mercury last Newtonian and GR-Augmented orbits after 60 Earth years')
+
 
 """
 plt.plot(GR_sun[:, 0], GR_sun[:, 1], 'yo', label=f'SUN')
@@ -61,7 +73,7 @@ plt.plot(GR_mercury[:, 0], GR_mercury[:, 1], color='grey',  label=f'Mercury Post
 
 
 plt.legend(loc=4)
-plt.xlabel('X [AU]')
+plt.xlabel('Time [Day]')
 #plt.xlabel('Time [arbitrary units]')
 plt.ylabel('Y [AU]')
 

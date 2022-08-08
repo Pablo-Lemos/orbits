@@ -47,7 +47,7 @@ def mean_weighted_error(y_true, y_pred, nplanets):
     Returns: loss
 
     '''
-    # Don't understand why y_true = A_rot nad y_pred = D_rot
+
     y_true = tf.reshape(y_true, shape=[-1, nplanets, 3])
     y_pred = tf.reshape(y_pred, shape=[-1, nplanets, 3])
     x = (y_true - y_pred)
@@ -211,7 +211,8 @@ class LearnForces(tf.keras.Model):
 
         # Unpack the data
         D_V, A = data
-        #print(f'D_V shape in training step {D_V.shape}')
+        print(f'D_V shape in training step {D_V.shape}')
+        print(f'A shape in training step {A.shape}')
 
 
         D_V_rs = tf.reshape(D_V, shape=[-1, self.nedges, 6])
@@ -264,7 +265,8 @@ class LearnForces(tf.keras.Model):
     def test_step(self, data):
         # Unpack the data
         D_V, A = data
-        #print(f'D_V shape in test step {D_V.shape}')
+        print(f'D_V shape in test step {D_V.shape}')
+        print(f'A shape in test step {A.shape}')
 
         predictions = self(D_V)
 

@@ -1,5 +1,5 @@
-from planets_tf2 import read_data
-from ml_model import LearnForces, Normalize_gn
+from planets_tf2_gr import read_data
+from ml_model_gr import LearnForces, Normalize_gn
 import helper_functions_gr as hf
 import tensorflow as tf
 import numpy as np
@@ -9,7 +9,7 @@ import os
 
 
 # Training variables
-num_time_steps_tr = 504000  # Number of time steps for training (~27 years).
+num_time_steps_tr = 1031200  # Number of time steps for training 30y=504000; 40y=680800; 50y=856000; 60y=1031200
 noise_level = 0.01 # Standard deviation of Gaussian noise for randomly perturbing input data
 # One time step is 30 minutes
 # An orbit for saturn is 129110 steps
@@ -64,7 +64,7 @@ def read_data(num_time_steps_tr, num_time_steps_val):
     # Read the file
     dir_path = os.path.dirname(os.path.realpath(__file__))
     #filename = os.path.join(dir_path, 'data/solar_system_data.pkl')
-    filename = './simulator/1000_gr_simulation_1pl.pickle'
+    filename = './simulator/1000_gr_simulation_1pl_60y.pickle'
     filehandler = open(filename, 'rb')
     system = pickle.load(filehandler)
 
@@ -116,8 +116,8 @@ def format_data_gnn(data_tr, data_val, system):
     masses = system.get_masses()
 
     # Create empty arrays for the distances and velocities for training and validation
-    D_tr = V_tr = np.empty([len(data_tr), nedges, 3])
-    D_val = V_val = np.empty([len(data_val), nedges, 3])
+    D_V_tr = np.empty([len(data_tr), nedges, 6])
+    D_V_val = np.empty([len(data_val), nedges, 6])
 
     k = 0
     # Create empty lists for the senders and receivers that will be used for
@@ -127,11 +127,8 @@ def format_data_gnn(data_tr, data_val, system):
         for j in range(system.numPlanets):
             if i > j:
                 # For every pair of objects, assign a distance
-                D_tr[:, k, :] = data_tr[:, j, :3] - data_tr[:, i, :3]
-                D_val[:, k, :] = data_val[:, j, :3] - data_val[:, i, :3]
-                # For every pair of objects, assign a relative velocity
-                V_tr[:, k, :] = data_tr[:, j, 3:6] - data_tr[:, i, 3:6]
-                V_val[:, k, :] = data_val[:, j, 3:6] - data_val[:, i, 3:6]
+                D_V_tr[:, k, :] = data_tr[:, j, :6] - data_tr[:, i, :6]
+                D_V_val[:, k, :] = data_val[:, j, :6] - data_val[:, i, :6]
 
                 k += 1
                 # Add sender and receiver index
@@ -145,18 +142,11 @@ def format_data_gnn(data_tr, data_val, system):
     A_norm = np.std(A_tr)
 
     # Flatten the arrays
-    D_tr = np.reshape(D_tr, [-1, 3])
-    D_val = np.reshape(D_val, [1, -1, 3])
-
-    V_tr = np.reshape(V_tr, [-1, 3])
-    V_val = np.reshape(V_val, [1, -1, 3])
+    D_V_tr = np.reshape(D_V_tr, [-1, 6])
+    D_V_val = np.reshape(D_V_val, [1, -1, 6])
 
     A_tr = np.reshape(A_tr / A_norm, [-1, 3])
     A_val = np.reshape(A_val / A_norm, [1, -1, 3])
-
-    # Concatenate for edge
-    D_V_tr = np.concatenate([D_tr, V_tr], axis=-1)
-    D_V_val = np.concatenate([D_val, V_val], axis=-1)
 
     # Convert them to tensors
     D_V_tr = tf.convert_to_tensor(D_V_tr, dtype="float32")
@@ -185,7 +175,7 @@ def load_model(system, norm_layer, senders, receivers):
     """ Load the model"""
 
     # Restore best weights not working, but found way around using checkpoint
-    checkpoint_filepath = './saved_models/sun_mercury_1000_gr'
+    checkpoint_filepath = './saved_models/sun_mercury_1000_gr_60y_1'
 
     # Create a model
     model = LearnForces(system.numPlanets, senders, receivers, norm_layer,
@@ -203,8 +193,7 @@ if __name__ == "__main__":
     tf.config.list_physical_devices('CPU')
     tf.config.run_functions_eagerly(False)
 
-    data_tr, data_val, _, system = read_data(num_time_steps_tr,
-                                           num_time_steps_val)
+    data_tr, data_val, _, system = read_data(num_time_steps_tr, num_time_steps_val)
     print('Read data')
     train_ds, test_ds, norm_layer, senders, receivers, A_norm, D_V_val = format_data_gnn(
         data_tr, data_val, system)
@@ -222,13 +211,15 @@ if __name__ == "__main__":
     names = system.get_names()
 
     F_val_new = np.empty([len(data_val), nedges, 3])
+    d_val = np.empty([len(data_val), nedges, 6])
+
     k = 0
     for i in range(nplanets):
         for j in range(nplanets):
             if i > j:
-                d_val = data_val[:, j, :3] - data_val[:, i, :3]
-                F_val_new[:, k, :] = GR_correctoin(10 ** learned_masses[i],
-                                                  10 ** learned_masses[j], d_val[:, :, :3], d_val[:, :, 3:6] ) # cartesian_to_spherical_coordinates(d_val)
+                d_val = data_val[:, j, :6] - data_val[:, i, :6]
+                F_val_new[:, k, :] = GR_correctoin(10 ** learned_masses[i], 10 ** learned_masses[j],
+                                                   d_val[:, :3], d_val[:, 3:6] ) # cartesian_to_spherical_coordinates(d_val)
                 k += 1
 
     nrows = nplanets // 2

@@ -196,8 +196,8 @@ if __name__ == "__main__":
         for j in range(nplanets):
             if i > j:
                 d_val = data_val[:, j, :3] - data_val[:, i, :3]
-                F_val_new[:, k, :] = force_newton(d_val, 10 ** learned_masses[i],
-                                                  10 ** learned_masses[j])  # cartesian_to_spherical_coordinates(d_val)
+                print(f'd_val shape: {d_val.shape}')
+                F_val_new[:, k, :] = force_newton(d_val, 10 ** learned_masses[i], 10 ** learned_masses[j])  # cartesian_to_spherical_coordinates(d_val)
                 k += 1
 
     # nrows = nplanets // 4

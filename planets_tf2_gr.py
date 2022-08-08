@@ -25,10 +25,10 @@ MEARTH = 5.9724e+24 # kg
 G = 6.67428e-11/AU**3*MSUN*DAY**2 # Change units of G to AU^3 MSun^{-1} Day^{-2}
 
 # Training variables
-patience = 20 # For early stopping (increased from 20)
+patience = 50 # For early stopping (increased from 20)
 noise_level = 0.01 # Standard deviation of Gaussian noise for randomly perturbing input data
 num_epochs = 1000 # Number of training epochs. Set to large number
-num_time_steps_tr = 504000  # Number of time steps for training (~27 years).
+num_time_steps_tr = 1031200  # Number of time steps for training 30y=504000; 40y=680800; 50y=856000; 60y=1031200
 # One time step is 30 minutes
 # An orbit for saturn is 129110 steps
 num_time_steps_val = 10000 # Using few to speed up calculations
@@ -48,7 +48,7 @@ def read_data(num_time_steps_tr, num_time_steps_val):
     # Read the file
     dir_path = os.path.dirname(os.path.realpath(__file__))
     #filename = os.path.join(dir_path, 'data/solar_system_data.pkl')
-    filename = './simulator/1000_gr_simulation_1pl.pickle'
+    filename = './simulator/1000_gr_simulation_1pl_60y.pickle'
     filehandler = open(filename, 'rb')
     system = pickle.load(filehandler)
 
@@ -100,8 +100,8 @@ def format_data_gnn(data_tr, data_val, system):
     masses = system.get_masses()
 
     # Create empty arrays for the distances and velocities for training and validation
-    D_tr = V_tr = np.empty([len(data_tr), nedges, 3])
-    D_val = V_val = np.empty([len(data_val), nedges, 3])
+    D_V_tr = np.empty([len(data_tr), nedges, 6])
+    D_V_val = np.empty([len(data_val), nedges, 6])
 
     k = 0
     # Create empty lists for the senders and receivers that will be used for
@@ -110,12 +110,9 @@ def format_data_gnn(data_tr, data_val, system):
     for i in range(system.numPlanets):
         for j in range(system.numPlanets):
             if i > j:
-                # For every pair of objects, assign a distance
-                D_tr[:, k, :] = data_tr[:, j, :3] - data_tr[:, i, :3]
-                D_val[:, k, :] = data_val[:, j, :3] - data_val[:, i, :3]
-                # For every pair of objects, assign a relative velocity
-                V_tr[:, k, :] = data_tr[:, j, 3:6] - data_tr[:, i, 3:6]
-                V_val[:, k, :] = data_val[:, j, 3:6] - data_val[:, i, 3:6]
+                # For every pair of objects, assign a distance and a velocity
+                D_V_tr[:, k, :] = data_tr[:, j, :6] - data_tr[:, i, :6]
+                D_V_val[:, k, :] = data_val[:, j, :6] - data_val[:, i, :6]
 
                 k += 1
                 # Add sender and receiver index
@@ -129,18 +126,11 @@ def format_data_gnn(data_tr, data_val, system):
     A_norm = np.std(A_tr)
 
     # Flatten the arrays
-    D_tr = np.reshape(D_tr, [-1, 3])
-    D_val = np.reshape(D_val, [1, -1, 3])
-
-    V_tr = np.reshape(V_tr, [-1, 3])
-    V_val = np.reshape(V_val, [1, -1, 3])
+    D_V_tr = np.reshape(D_V_tr, [-1, 6])
+    D_V_val = np.reshape(D_V_val, [1, -1, 6])
 
     A_tr = np.reshape(A_tr / A_norm, [-1, 3])
     A_val = np.reshape(A_val / A_norm, [1, -1, 3])
-
-    # Concatenate for edge
-    D_V_tr = np.concatenate([D_tr, V_tr], axis=-1)
-    D_V_val = np.concatenate([D_val, V_val], axis=-1)
 
     # Convert them to tensors
     D_V_tr = tf.convert_to_tensor(D_V_tr, dtype="float32")
@@ -175,7 +165,7 @@ def main(system, train_ds, test_ds, norm_layer, senders, receivers):
                                                       restore_best_weights=False)
 
     # Restore best weights not working, but found way around using checkpoint
-    checkpoint_filepath = './saved_models/sun_mercury_1000_gr_2'
+    checkpoint_filepath = 'saved_models/sun_mercury_1000_gr_60y_5'
 
     checkpoint = tf.keras.callbacks.ModelCheckpoint(
         filepath=checkpoint_filepath,

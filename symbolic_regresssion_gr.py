@@ -9,7 +9,7 @@ import os
 import sympy
 
 # Training variables
-num_time_steps_tr = 504000  # Number of time steps for training (~28.8 years).
+num_time_steps_tr = 504000  # Number of time steps for training 30y=504000; 40y=680800; 50y=856000; 60y=1031200
 noise_level = 0.01  # Standard deviation of Gaussian noise for randomly perturbing input data
 # One time step is 30 minutes
 # An orbit for saturn is 129110 steps
@@ -28,7 +28,7 @@ c = (2.99792458 * 10**8) * DAY / AU # speed of light in AU/Day
 
 
 def force_newton(m1, m2, x):
-    return G * m1 * m2 / np.linalg.norm(x, axis=-1, keepdims=True) ** 3. * x
+    return G * m1 * m2 / np.linalg.norm(x) ** 3. * x
 
 
 def GR_correctoin (m1, m2, distance, velocity):
@@ -46,7 +46,7 @@ def GR_correctoin (m1, m2, distance, velocity):
     dist_norm = np.sum(distance ** 2.) ** 0.5
     L_norm = np.linalg.norm(np.cross(distance, velocity))
     f_n = G * m1 * m2 * distance / dist_norm ** 3.
-    corr = 3*L_norm**2/(c**2 * dist_norm**2)
+    corr = 3.*L_norm**2/(c**2 * dist_norm**2)
     return f_n * (1 + 1000 * corr)
 
 
@@ -54,7 +54,7 @@ def load_model(system, norm_layer, senders, receivers):
     """ Load the model"""
 
     # Restore best weights not working, but found way around using checkpoint
-    checkpoint_filepath = './saved_models/sun_mercury_1000_gr'
+    checkpoint_filepath = './saved_models/sun_mercury_1000_gr_60y_1'
 
     # Create a model
     model = LearnForces(system.numPlanets, senders, receivers, norm_layer,
@@ -132,10 +132,14 @@ def run_symbolic_regression(D_V, Fn_symreg, model, system, num_pts=1000, name='e
 
     F_corr = (F / Fn_symreg) - 1
 
-    X = np.zeros([D_V.shape[0], D_V.shape[1], 10])
+    X = np.zeros([D_V.shape[0], D_V.shape[1], 11])
+    # Distances
     X[:, :, 2:5] = D_V[:, :, :3]
+    # Distances Norm
     X[:, :, 5] = np.linalg.norm(D_V[:, :, :3], axis=-1)
+    # Velocities
     X[:, :, 6:9] = D_V[:, :, 3:]
+    # Velocities norm
     X[:, :, 9] = np.linalg.norm(D_V[:, :, 3:], axis=-1)
 
     k = 0
@@ -146,7 +150,7 @@ def run_symbolic_regression(D_V, Fn_symreg, model, system, num_pts=1000, name='e
                 X[:, k, 1] = 10 ** (learned_masses[j])
                 k += 1
 
-    X = X.reshape([-1, 10])
+    X = X.reshape([-1, 11])
     F = F.reshape([-1, 3])
     F_corr = F_corr.reshape([-1, 3])
     y = F[:, 0]  # F_x
@@ -157,14 +161,25 @@ def run_symbolic_regression(D_V, Fn_symreg, model, system, num_pts=1000, name='e
     m_std = np.std(X[:, :2])
     x_std = np.std(X[:, 2:5])
     v_std = np.std(X[:, 6:9])
+    #l_std = np.std(X[:, 10])
     X[:, :2] /= m_std
     X[:, 2:6] /= x_std
-    X[:, 6:] /= v_std
+    X[:, 6:10] /= v_std
+    #X[:, 10] /= l_std
+    # Angular momentum norm
+    X[:, 10] = np.linalg.norm(np.cross(X[:, 2:5], X[:, 6:9]))
+
+    XV = np.zeros([D_V.shape[0], 5])
+    XV[:, :2] = X[:, :2]    # m
+    XV[:, 2] = X[:, 2]     # x
+    XV[:, 3] = X[:, 5]     # r
+    XV[:, 4] = X[:, 10]    # l
 
     idx = np.random.choice(X.shape[0], num_pts, replace=False)
     X = X[idx]
     y = y[idx]
     y_corr = y_corr[idx]
+    XV = XV[idx]
 
     # Randomly swap masses
     for i in range(len(X)):
@@ -175,10 +190,10 @@ def run_symbolic_regression(D_V, Fn_symreg, model, system, num_pts=1000, name='e
     pysr_model = PySRRegressor(populations=64,
                                niterations=1000,
                                binary_operators=["plus", "sub", "mult", "div",
-                                                 #"cross(x, y) = LinearAlgebra.cross(x,y)"
+                                                 #"cross(x, y) = cross(x,y)"
                                                  ],
                                unary_operators=["square", "cube", "quad(x) = x^4", "quint(x) = x^5",
-                                                "norm(x) = norm(x, 2)"
+                                                #"norm(x) = norm(x, 2)"
                                                 ],
                                constraints={
                                    "div": (-1, 9),
@@ -196,7 +211,6 @@ def run_symbolic_regression(D_V, Fn_symreg, model, system, num_pts=1000, name='e
                                maxsize=40,
                                maxdepth=10,  # avoid deep nesting
                                useFrequency=True,
-                               variable_names=['m0', 'm1', 'x', 'y', 'z', 'r', 'vx', 'vy', 'vz', 'V'],
                                optimizer_algorithm="BFGS",
                                optimizer_iterations=10,
                                optimize_probability=1.0
@@ -220,7 +234,7 @@ if __name__ == "__main__":
     print('Model loading completed')
 
     equations = run_symbolic_regression(D_V_symreg, Fn_symreg, model, system,
-                                        name='sun_mercury_1000_gr_x_y_cross_norm',
+                                        name='sun_mercury_venus_1000_gr_30y_1_xy',
                                         num_pts=5000)
 
     #best(equations)
