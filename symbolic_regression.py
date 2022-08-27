@@ -25,7 +25,7 @@ MEARTH = 5.9724e+24 # kg
 G = 6.67428e-11/AU**3*MSUN*DAY**2 # Change units of G to AU^3 MSun^{-1} Day^{-2}
 A_norm = 0.00042411583592113497 # From planets_tf2 (I will change the way
 # this is stored eventually)
-c = (2.99792458 * 10**8) * DAY / AU #speed of light in AU/Day
+c = (2.99792458 * 10**8) * DAY / AU # speed of light in AU/Day
 
 def force_newton(x, m1, m2):
     return G*m1*m2/np.linalg.norm(x, axis = -1, keepdims=True)**3.*x
@@ -44,7 +44,7 @@ def load_model(system, norm_layer, senders, receivers):
     # Compile
     model.compile()
 
-    model.load_weights(checkpoint_filepath)
+    model.load_weights(checkpoint_filepath).expect_partial()
 
     return model
 
@@ -138,7 +138,9 @@ def run_symbolic_regression(D, model, system, num_pts=1000, name='eqns'):
     pysr_model = PySRRegressor(populations=64,
                                niterations=1000,
                                binary_operators=["plus", "sub", "mult", "div"],
-                               unary_operators=["square", "cube", "quad(x) = x^4", "quint(x) = x^5"],
+                               unary_operators=["square", "cube",
+                                                #"quad(x) = x^4", "quint(x) = x^5"
+                                                ],
                                constraints={
                                    "div": (-1, 9),
                                    "square": 9,
@@ -180,7 +182,7 @@ if __name__ == "__main__":
     print('Model loading completed')
 
     equations = run_symbolic_regression(D_symreg, model, system,
-                                        name='sun_mercury_n_minimum_operators_variables_myfunctions',
+                                        name='sun_mercury_venus_ n_2',
                                         num_pts=5000)
 
     #best(equations).sympy()

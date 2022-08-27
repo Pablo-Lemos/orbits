@@ -165,7 +165,7 @@ def main(system, train_ds, test_ds, norm_layer, senders, receivers):
                                                       restore_best_weights=False)
 
     # Restore best weights not working, but found way around using checkpoint
-    checkpoint_filepath = 'saved_models/sun_mercury_1000_gr_60y_5'
+    checkpoint_filepath = 'saved_models/sun_mercury_1000_gr_60y_6'
 
     checkpoint = tf.keras.callbacks.ModelCheckpoint(
         filepath=checkpoint_filepath,

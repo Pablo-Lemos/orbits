@@ -47,17 +47,17 @@ def GR_correctoin (m1, m2, distance, velocity):
     Args:
         m1: mass of first body
         m2: mass of second body
-        distance: three dimensional distance array
-        velocity: three dimensional velocity array
+        distance: three-dimensional distance array
+        velocity: three-dimensional velocity array
 
-    Returns: A numpy array with the three force correction components
+    Returns: A numpy array with the three components pf the force GR corrected
 
     """
     dist_norm = np.sum(distance ** 2.) ** 0.5
     L_norm = np.linalg.norm(np.cross(distance, velocity))
     f_n = G * m1 * m2 * distance / dist_norm ** 3.
     corr = 3*L_norm**2/(c**2 * dist_norm**2)
-    return f_n * (1 + 1000*corr)
+    return f_n * (1 + 1000 * corr)
 
 
 class Body(object):

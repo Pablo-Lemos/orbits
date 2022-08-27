@@ -9,7 +9,7 @@ import os
 
 
 # Training variables
-num_time_steps_tr = 1031200  # Number of time steps for training 30y=504000; 40y=680800; 50y=856000; 60y=1031200
+num_time_steps_tr = 504000  # Number of time steps for training 30y=504000; 40y=680800; 50y=856000; 60y=1031200
 noise_level = 0.01 # Standard deviation of Gaussian noise for randomly perturbing input data
 # One time step is 30 minutes
 # An orbit for saturn is 129110 steps
@@ -64,7 +64,7 @@ def read_data(num_time_steps_tr, num_time_steps_val):
     # Read the file
     dir_path = os.path.dirname(os.path.realpath(__file__))
     #filename = os.path.join(dir_path, 'data/solar_system_data.pkl')
-    filename = './simulator/1000_gr_simulation_1pl_60y.pickle'
+    filename = './simulator/1000_gr_simulation_1pl.pickle'
     filehandler = open(filename, 'rb')
     system = pickle.load(filehandler)
 
@@ -175,7 +175,7 @@ def load_model(system, norm_layer, senders, receivers):
     """ Load the model"""
 
     # Restore best weights not working, but found way around using checkpoint
-    checkpoint_filepath = './saved_models/sun_mercury_1000_gr_60y_1'
+    checkpoint_filepath = './saved_models/sun_mercury_1000_gr'
 
     # Create a model
     model = LearnForces(system.numPlanets, senders, receivers, norm_layer,
@@ -222,12 +222,101 @@ if __name__ == "__main__":
                                                    d_val[:, :3], d_val[:, 3:6] ) # cartesian_to_spherical_coordinates(d_val)
                 k += 1
 
+    print(f'F_VAL: {F_val_new.shape}')
+    print(f'Fp: {fp.shape}')
+    # Force
+    #fp = np.reshape(fp, [-1, 3])
+    #ft = np.reshape(F_val_new, [-1, 3])
+    #ft = ft/np.std(ft)
+    #ft = np.linalg.norm(ft, axis=-1)
+    #fp = np.linalg.norm(fp, axis=-1)
+
+
+    a_diff = np.zeros([data_val.shape[0], data_val.shape[1], 3])
+    # acc norm
+    at = (data_val[:, :, 6:] / A_norm)
+    # Resultant true acc
+    a_res_true = np.linalg.norm(at, axis=-1)
+    # Resultant predicted acc
+    a_res_pre = np.linalg.norm(ap, axis=-1)
+    a_diff = a_res_pre - a_res_true
+    # Number of Validation data points
+    n = a_res_pre.shape[0]
+    # Standard deviation
+    a_diff_2 = np.sum((a_diff) ** 2, axis=0)
+    sigma = (a_diff_2 / n) ** 0.5
+
+    x = at - ap
+    x = np.sum(x**2, axis=-1)
+    x = np.sum(x, axis=0)
+
+    x2 = at
+    x2 = np.sum(x2**2, axis=-1)
+    x2 = np.sum(x2, axis=0)
+
+    loss = x / x2
+
+
+    # 2D plot
     nrows = nplanets // 2
     fig, ax = plt.subplots(nrows, 2, figsize=(16, 8 * nrows))
+    fig.suptitle(r'GR-Augmented Trained Model Low Sample Size', fontsize=18)
+
+
+    # 2D true vs. predicted acc
     for i in range(nplanets):
         ax[i // 1].set_title(names[i], fontsize=16)
-        ax[i // 1].plot(ap[:, i, 0], ap[:, i, 1], '.', label='Learned')
+        ax[i // 1].set_xlabel(r'$a_x$', fontsize=12)
+        ax[i // 1].set_ylabel(r'$a_y$', fontsize=12)
         ax[i // 1].plot(data_val[:, i, 6] / A_norm, data_val[:, i, 7] / A_norm, '.', label='Truth')
+        ax[i // 1].plot(ap[:, i, 0], ap[:, i, 1], '.', label='Learned')
 
     ax[0].legend()
+
+    '''
+    # Delta acc
+    for i in range(nplanets):
+        ax[i // 1].set_title(names[i], fontsize=16)
+        ax[i // 1].set_xlabel(r'$\Delta$$a_x$')
+        ax[i // 1].set_ylabel(r'$\Delta$$a_y$')
+        ax[i // 1].plot(a_diff[:, i, 0], a_diff[:, i, 1], '.', label=r'$\Delta$a')
+    
+    '''
+
+    '''
+    # Histogram
+    for i in range(nplanets):
+        ax[i // 1].set_title(names[i], fontsize=16)
+        ax[i // 1].set_xlabel(r'$\delta$$a_{r}^{2}$', fontsize=12)
+        ax[i // 1].set_ylabel(r'Log (N)')
+        ax[i // 1].hist(a_diff[:, i]**2, bins=250, color='limegreen', log=True)
+        if i == 0:
+            ax[i // 1].text(0.1e-15, 4000, r'$\mu_{Sun}=1.23\times10^{-16}$', fontsize=12)
+            ax[i // 1].text(0.1e-15, 2000, r'$\sigma_{Sun}=3.05\times10^{-16}$', fontsize=12)
+        else:
+            ax[i // 1].text(0.005, 1400, r'$\mu_{Mercury}=5.37\times10^{-3}$', fontsize=12)
+            ax[i // 1].text(0.005, 800, r'$\sigma_{Mercury}=1.10\times10^{-2}$', fontsize=12)
+    '''
+
+
+
+    #plt.hist(a_res_diff[:, 1], bins=300)
+
+    std_sun = np.std(a_diff[:, 0]**2)
+    std_mercury = np.std(a_diff[:, 1]**2)
+    mean_sun = np.mean(a_diff[:, 0]**2)
+    mean_mercury = np.mean(a_diff[:, 1]**2)
+    print(f'Std Sun: {std_sun}')
+    print(f'Std Mercury: {std_mercury}')
+    print(f'Mean Sun: {mean_sun}')
+    print(f'Mean Mercury: {mean_mercury}')
+    print(f'Loss: {loss.shape}')
+    print(f'Loss mean: {np.mean(loss)}')
+    print(f'Loss std: {np.std(loss)}')
+    print(f'Loss Min: {loss.min()}, Loss Max: {loss.max()}')
+    print(f'diff Min: {a_diff.min()}, diff Max: {a_diff.max()}')
+    print(f'x Min: {x.min()}, x Max: {x.max()}')
+    print(f'x2 Min: {x2.min()}, x2 Max: {x2.max()}')
+    print(f'Sigma: {sigma}')
+
     plt.show()

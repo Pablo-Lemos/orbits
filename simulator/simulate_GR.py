@@ -7,6 +7,9 @@ Code that simulates the orbits of solar system bodies for a given force law
 Created by Pablo Lemos (UCL)
 28-11-2019
 pablo.lemos.18@ucl.ac.uk
+
+Updated for GR-corr by Shahir Iskander (US)
+01-04-2022
 '''
 
 import numpy as np

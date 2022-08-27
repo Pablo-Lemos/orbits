@@ -50,7 +50,7 @@ D_V = tf.convert_to_tensor(D_V, dtype='float32')
 x = hf.cartesian_to_spherical_coordinates(D_V)
 print(x.shape)
 '''
-
+'''
 pos_sun = np.array([7.93567917e-03, -6.29360340e-04, -2.31793679e-04])
 vel_sun = np.array([3.56426004e-06, 7.70848450e-06, -1.38462510e-07])
 
@@ -62,4 +62,20 @@ MMARS = 0.33011 * 10 ** 24 / MSUN
 GR = np.linalg.norm(GR_correctoin(MSUN, MMARS, pos_mercury, vel_mercury))
 
 a = GR / MMARS
-print(GR)
+print('PySR: Fast \& Parallelized Symbolic Regression in Python/Julia')
+'''
+pi = np.pi
+npi = -1 * np.pi
+x = np.linspace(-4, 4, num=50, endpoint=True)
+y = x *1
+y[:25] = np.zeros([1, 25])
+y2= np.tanh(x)
+#x = np.linspace(-4, 4, num=9, endpoint=True)
+plt.plot(x, y, label='ReLU Function')
+plt.plot(x, y2, label='tanh Function')
+plt.xlabel('Input')
+plt.ylabel('Output')
+plt.grid(axis='both')
+plt.legend()
+
+plt.show()
