@@ -5,6 +5,7 @@ import sonnet as snt
 
 from helper_functions import *
 
+
 class Normalize_gn(tf.keras.layers.Layer):
     def __init__(self, D):
         super(Normalize_gn, self).__init__()
@@ -29,6 +30,7 @@ class Normalize_gn(tf.keras.layers.Layer):
     
         return outputs
 
+
 def mean_weighted_error(y_true, y_pred, nplanets):
     y_true = tf.reshape(y_true, shape=[-1, nplanets, 3])
     y_pred = tf.reshape(y_pred, shape=[-1, nplanets, 3])
@@ -43,6 +45,7 @@ def mean_weighted_error(y_true, y_pred, nplanets):
     loss = tf.reduce_sum(x/x2)      
     return loss
 
+
 class MeanWeightedError(tf.keras.metrics.Metric):
     def __init__(self, name="mean_weighted_error", **kwargs):
         super(MeanWeightedError, self).__init__(name=name, **kwargs)
@@ -54,12 +57,14 @@ class MeanWeightedError(tf.keras.metrics.Metric):
     def result(self):
         return self.mwe
 
-    def reset_states(self):
+    def reset_state(self):
         # The state of the metric will be reset at the start of each epoch.
         self.mwe.assign(0.0)
 
+
 loss_tracker = tf.keras.metrics.Mean(name='loss')
 loss_test = MeanWeightedError(name='loss_test')
+
 
 class LearnForces(tf.keras.Model):
     def __init__(self, nplanets, senders, receivers, norm_layer, noise_level = 0.):
@@ -70,8 +75,8 @@ class LearnForces(tf.keras.Model):
         self.nplanets = nplanets
         self.nedges = nplanets*(nplanets-1)//2
 
-        self.opt1 = tf.keras.optimizers.Adam(learning_rate=5e-2)
-        self.opt2 = tf.keras.optimizers.Adam(learning_rate=1e-3)
+        self.opt_gnn = tf.keras.optimizers.Adam(learning_rate=1e-3)
+        self.opt_masses = tf.keras.optimizers.Adam(learning_rate=1e-1)
         #self.test_loss_metric = tf.keras.metrics.MeanAbsoluteError(name='test_loss')
         
         logm_init = tf.random_normal_initializer(mean=0.0, stddev=1.0)
@@ -93,9 +98,7 @@ class LearnForces(tf.keras.Model):
             trainable=True,
             constraint=lambda z: tf.clip_by_value(z, -12, 12)
         )
-        
-        #norm_layer = Normalize_gn()
-        
+
         self.graph_network = gn.blocks.EdgeBlock(
             #edge_model_fn=lambda: snt.Linear(3, with_bias = False, 
             #                                 w_init=M),
@@ -114,7 +117,6 @@ class LearnForces(tf.keras.Model):
             use_sender_nodes = True,
             use_globals = False,
         )
-                
 
 
     def sum_forces(self, graph):
@@ -128,7 +130,9 @@ class LearnForces(tf.keras.Model):
         return acceleration_tr
         
     def call(self, D, training = False, extract = False):
-        ntime = len(D)//self.nedges
+        if D.shape[0] is None:
+            return D
+        ntime = int(D.shape[0]//self.nedges)
         if training == True:
             m_noise = tf.random.normal(tf.shape(self.logm_planets), 0, self.noise_level, tf.float32)
             lm = self.logm_planets*(1+ m_noise)
@@ -142,10 +146,10 @@ class LearnForces(tf.keras.Model):
 
         nodes_g = tf.concat([lm]*ntime, axis = 0)
         nodes_g = tf.expand_dims(nodes_g, 1)
-        senders_g, receivers_g = reshape_senders_receivers(self.senders, 
-                                                             self.receivers, 
-                                                             ntime, 
-                                                             self.nplanets, 
+        senders_g, receivers_g = reshape_senders_receivers(self.senders,
+                                                             self.receivers,
+                                                             ntime,
+                                                             self.nplanets,
                                                              self.nedges)
         
         if training == True:
@@ -208,20 +212,26 @@ class LearnForces(tf.keras.Model):
         #gradients, _ = tf.clip_by_global_norm(gradients, 5.0)
         # Update weights
         #self.optimizer.apply_gradients(zip(gradients,trainable_vars))
+        #gradients = tape.gradient(loss, self.trainable_variables)
+        #gradients, _ = tf.clip_by_global_norm(gradients, 5.0)
+        #gradients = [tf.clip_by_value(i, -5, 5) for i in gradients]
+        # Update weights
+        #self.optimizer.apply_gradients(zip(gradients,self.trainable_variables))
+
+        var_list = self.trainable_variables
+        grads = tape.gradient(loss, var_list)
 
 
-        var_list1 = self.trainable_variables
-        var_list2 = list(self.graph_network.trainable_variables)
-        gradients = tape.gradient(loss, var_list1 + var_list2)
-        grads1 = gradients[:len(var_list1)]
-        grads2 = gradients[len(var_list1):]
-        #grads1, _ = tf.clip_by_global_norm(grads1, 5.0)
-        #grads2, _ = tf.clip_by_global_norm(grads2, 5.0)
-        #grads1 = [tf.clip_by_value(i, -5, 5) for i in grads1]
-        #grads2 = [tf.clip_by_value(i, -5, 5) for i in grads2]
-        train_op1 = self.opt1.apply_gradients(zip(grads1, var_list1))
-        train_op2 = self.opt2.apply_gradients(zip(grads2, var_list2)) 
-        train_op = tf.group(train_op1, train_op2)        
+        train_op_gnn = self.opt_gnn.apply_gradients(zip(grads[:-1], var_list[:-1]))
+        train_op_masses = self.opt_masses.apply_gradients(zip(grads[-1:], var_list[-1:]))
+        #var_list1 = self.trainable_variables
+        #var_list2 = list(self.graph_network.trainable_variables)
+        #gradients = tape.gradient(loss, var_list1 + var_list2)
+        #grads1 = gradients[:len(var_list1)]
+        #grads2 = gradients[len(var_list1):]
+        #train_op1 = self.opt1.apply_gradients(zip(grads1, var_list1))
+        #train_op2 = self.opt2.apply_gradients(zip(grads2, var_list2)) 
+        #train_op = tf.group(train_op1, train_op2)        
         
         loss_tracker.update_state(loss)
         return {"loss": loss_tracker.result()}

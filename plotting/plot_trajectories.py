@@ -10,7 +10,7 @@ if __name__ == "__main__":
     import numpy as np
     import os
     from simulate_orbits import *
-    import read_orbits
+    from simulator import read_orbits
     from matplotlib import pylab as plt
     import matplotlib.gridspec as gridspec
     from copy import copy

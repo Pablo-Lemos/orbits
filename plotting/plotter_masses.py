@@ -10,10 +10,10 @@ if __name__ == "__main__":
     import os
     import numpy as np
     import matplotlib.pyplot as plt
-    import color_utilities_orig as cu
+    from plotting import color_utilities_orig as cu
     import matplotlib.gridspec as gridspec
-    import read_orbits
-    from solar_system_names import *
+    from simulator import read_orbits
+    from data.solar_system_names import *
 
     ###############################################################################
     # initial setup:
@@ -43,8 +43,8 @@ if __name__ == "__main__":
 
     nplanets = 8  #  Number of planets (not counting the sun)
     masses, names = read_orbits.main(nplanets=nplanets, frame='b', use_moons=True,
-                                           path='/Users/Pablo/Dropbox/data/orbits/7parts/part1/',
-                                           read_data=False)
+                                     path='/Users/Pablo/Dropbox/data/orbits/7parts/part1/',
+                                     read_data=False)
 
     logmasses = np.log10(masses/masses[0])
     mass_error = np.mean((masses_learned - logmasses.reshape([1,-1]))**2, axis = 0)#/logmasses**2
